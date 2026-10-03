@@ -1,11 +1,16 @@
 <Solution>
-  <Folder Name="/Elementos de la solución/">
-    <File Path="m1/Operadores/Operadores.csproj" />
+  <Folder Name="/Elementos de la solución/" />
+  <Folder Name="/M1/">
+    <Project Path="m1/M1_01_QueEsDotNet/M1_01_QueEsDotNet.csproj" Id="986f2270-ba5f-46ce-80f2-315df5387977" />
+    <Project Path="m1/M1_02a_ConsoleApp1/M1_02a_ConsoleApp1.csproj" />
+    <Project Path="m1/M1_02b_ConsoleApp2/M1_02b_ConsoleApp2.csproj" />
+    <Project Path="m1/M1_04_VariablesYConstantes.cs/M1_04_VariablesYConstantes.cs.csproj" />
+    <Project Path="m1/M1_05_TiposDeDatos/M1_05_TiposDeDatos.csproj" />
+    <Project Path="m1/M1_06_Sentencias/M1_06_Sentencias.csproj" />
+    <Project Path="m1/M1_07_BloquesDeCodigo/M1_07_BloquesDeCodigo.csproj" Id="af1a6c90-d223-4afd-9759-fa534a74d892" />
+    <Project Path="m1/M1_08_Operadores/M1_08_Operadores.csproj" />
+    <Project Path="m1/M1_09_UsoDeConsola/M1_09_UsoDeConsola.csproj" />
+    <Project Path="M1_02_EntornoDeDesarrollo/M1_02_EntornoDeDesarrollo.csproj" Id="70d6fb07-d157-4dfa-b540-84539cfba7fb" />
+    <Project Path="M1_03_SintaxisYSemanticaDeCSharp/M1_03_SintaxisYSemanticaDeCSharp.csproj" Id="da01e3af-cf8e-4052-9671-cd08effc81f9" />
   </Folder>
-  <Project Path="m1/ConsoleApp1/ConsoleApp1.csproj" Id="47d2362a-e5ca-4769-ade7-7b31a73a9955" />
-  <Project Path="m1/ConsoleApp2/ConsoleApp2.csproj" />
-  <Project Path="m1/Sentencias/Sentencias.csproj" Id="7cae70b8-3237-4a83-b7a2-d8a16b61e9b3" />
-  <Project Path="m1/TiposDeDatos/TiposDeDatos.csproj" Id="e40e8aa4-ebb2-4a7e-8f93-d0e98f12bf42" />
-  <Project Path="m1/UsoDeConsola/UsoDeConsola.csproj" Id="bb087626-003e-464d-bda6-b826fb201b4f" />
-  <Project Path="m1/VariablesYConstantes.cs/VariablesYConstantes.cs.csproj" Id="31a98830-221b-4791-97c9-1a7f88c2242a" />
 </Solution>
