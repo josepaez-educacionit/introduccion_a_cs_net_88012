@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="m1/ConsoleApp1/ConsoleApp1.csproj" Id="47d2362a-e5ca-4769-ade7-7b31a73a9955" />
+  <Project Path="m1/ConsoleApp2/ConsoleApp2.csproj" />
+  <Project Path="m1/Sentencias/Sentencias.csproj" Id="7cae70b8-3237-4a83-b7a2-d8a16b61e9b3" />
+  <Project Path="m1/TiposDeDatos/TiposDeDatos.csproj" Id="e40e8aa4-ebb2-4a7e-8f93-d0e98f12bf42" />
+  <Project Path="m1/UsoDeConsola/UsoDeConsola.csproj" Id="bb087626-003e-464d-bda6-b826fb201b4f" />
+  <Project Path="m1/VariablesYConstantes.cs/VariablesYConstantes.cs.csproj" Id="31a98830-221b-4791-97c9-1a7f88c2242a" />
+  <Project Path="Operadores/Operadores.csproj" Id="1a10d61d-ea18-42a3-87a8-1ece3184514c" />
+</Solution>
