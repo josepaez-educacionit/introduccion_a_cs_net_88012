@@ -13,4 +13,14 @@
     <Project Path="m1/M1_08_Operadores/M1_08_Operadores.csproj" />
     <Project Path="m1/M1_09_UsoDeConsola/M1_09_UsoDeConsola.csproj" />
   </Folder>
+  <Folder Name="/M2/">
+    <Project Path="m2/M2_01_ControlDeFlujo/M2_01_ControlDeFlujo.csproj" Id="a30f9d95-5bb6-4d9e-9812-80e2dca23521" />
+    <Project Path="m2/M2_02_CondicionalesSimples/M2_02_CondicionalesSimples.csproj" Id="93bdfeb6-5b53-4914-83b4-d00bae34e5a2" />
+    <Project Path="m2/M2_03_InstruccionIf.cs/M2_03_InstruccionIf.cs.csproj" Id="dca2d1c6-08aa-4257-bb97-93be441fce80" />
+    <Project Path="m2/M2_04_InstruccionIfElse.cs/M2_04_InstruccionIfElse.cs.csproj" Id="5d464192-426c-4878-a5eb-ba897fd44dba" />
+    <Project Path="m2/M2_05_IfAnidados/M2_05_IfAnidados.csproj" Id="622cc74b-c3f1-40c6-a8fb-cbff6f07f074" />
+    <Project Path="m2/M2_06_CondicionalesMultiples/M2_06_CondicionalesMultiples.csproj" Id="a1fb6fc3-f782-4c98-af79-aad38b0ea6db" />
+    <Project Path="m2/M2_07_InstruccionSwitch/M2_07_InstruccionSwitch.csproj" Id="88a5d98d-9ab9-49fa-80d2-18c41ee458ce" />
+    <Project Path="m2/M2_08_InstruccionWhile/M2_08_InstruccionWhile.csproj" Id="f673dce9-f582-4e63-910d-888eca680be9" />
+  </Folder>
 </Solution>
