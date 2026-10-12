@@ -1,5 +1,6 @@
 ﻿namespace Ej01_BienvenidaBilletera
 {
+    // Ejercicio 1: Bienvenida a la Billetera Virtual.
     internal class Program
     {
         static void Main(string[] args)

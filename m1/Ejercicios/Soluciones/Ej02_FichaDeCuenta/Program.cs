@@ -1,5 +1,7 @@
 ﻿namespace Ej02_FichaDeCuenta
 {
+
+    // Ejercicio 2: Ficha de la billetera (variables y constantes).
     internal class Program
     {
         static void Main(string[] args)

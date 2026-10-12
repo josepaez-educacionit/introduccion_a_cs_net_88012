@@ -1,5 +1,6 @@
 ﻿namespace Ej03_TiposDeDatosCuenta
 {
+    // Ejercicio 3: Elegir el tipo de dato adecuado para cada dato de la cuenta.
     internal class Program
     {
         static void Main(string[] args)

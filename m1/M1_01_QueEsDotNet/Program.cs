@@ -78,3 +78,9 @@ lenguaje C# dentro de esta plataforma.
 // videojuegos y servicios en la nube.
 // C# combina la simplicidad de lenguajes como Java con la potencia de C++, ofreciendo características
 // como tipado fuerte, recolección de basura, programación asíncrona y soporte para LINQ.
+
+internal class Program
+{
+    static void Main(string[] args)
+    { }
+}

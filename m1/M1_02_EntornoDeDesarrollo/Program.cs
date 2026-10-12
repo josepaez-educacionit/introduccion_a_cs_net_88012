@@ -139,3 +139,8 @@ para pasar de una idea a una aplicación funcional.
    de múltiples líneas
 */
 
+internal class Program
+{
+    static void Main(string[] args)
+    { }
+}
