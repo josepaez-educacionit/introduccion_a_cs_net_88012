@@ -28,5 +28,6 @@
     <Project Path="m3/M3_02_InstruccionFor/M3_02_InstruccionFor.csproj" />
     <Project Path="m3/M3_03_InstruccionBreak/M3_03_InstruccionBreak.csproj" />
     <Project Path="m3/M3_04_InstruccionContinue/M3_04_InstruccionContinue.csproj" Id="2246cdaf-07be-49ae-99ea-756265f6dc00" />
+    <Project Path="M3_05_InstruccionReturn/M3_05_InstruccionReturn.csproj" Id="9981adfa-a34f-4817-a3ce-4dbda26a540a" />
   </Folder>
 </Solution>
