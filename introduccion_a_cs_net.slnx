@@ -25,6 +25,8 @@
   </Folder>
   <Folder Name="/M3/">
     <Project Path="m3/M3_01_InstruccionDoWhile/M3_01_InstruccionDoWhile.csproj" Id="fb362a96-354e-49df-851f-13003d96a32d" />
-    <Project Path="M3_02_InstruccionFor/M3_02_InstruccionFor.csproj" Id="4abaac4d-7a17-47a7-8161-308ca6295a17" />
+    <Project Path="m3/M3_02_InstruccionFor/M3_02_InstruccionFor.csproj" />
+    <Project Path="m3/M3_03_InstruccionBreak/M3_03_InstruccionBreak.csproj" />
+    <Project Path="m3/M3_04_InstruccionContinue/M3_04_InstruccionContinue.csproj" Id="2246cdaf-07be-49ae-99ea-756265f6dc00" />
   </Folder>
 </Solution>
