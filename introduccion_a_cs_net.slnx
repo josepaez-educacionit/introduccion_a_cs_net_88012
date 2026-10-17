@@ -23,4 +23,7 @@
     <Project Path="m2/M2_07_InstruccionSwitch/M2_07_InstruccionSwitch.csproj" Id="88a5d98d-9ab9-49fa-80d2-18c41ee458ce" />
     <Project Path="m2/M2_08_InstruccionWhile/M2_08_InstruccionWhile.csproj" Id="f673dce9-f582-4e63-910d-888eca680be9" />
   </Folder>
+  <Folder Name="/M3/">
+    <Project Path="m3/M3_01_InstruccionDoWhile/M3_01_InstruccionDoWhile.csproj" Id="fb362a96-354e-49df-851f-13003d96a32d" />
+  </Folder>
 </Solution>
