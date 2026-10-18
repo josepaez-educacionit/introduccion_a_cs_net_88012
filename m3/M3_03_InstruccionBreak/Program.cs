@@ -1,4 +1,53 @@
-﻿namespace M3_03_InstruccionBreak
+﻿/*
+3. Instrucción break.
+
+La instrucción break permite interrumpir de manera inmediata la ejecución de una estructura
+repetitiva, como un while, un do...while o un for, o bien la de una instrucción switch, sin
+esperar a que se cumpla la condición de finalización habitual de esa estructura.
+
+Cuando el programa encuentra un break dentro de un bucle, abandona ese bucle de inmediato y
+continúa la ejecución con la instrucción que se encuentra justo después de él, sin evaluar
+nuevamente la condición del ciclo ni completar las repeticiones restantes.
+
+Este comportamiento resulta útil cuando, durante la ejecución de un ciclo, se detecta una
+situación que hace innecesario continuar repitiendo el bloque de código, permitiendo salir de
+la estructura de forma anticipada y controlada.
+
+En el caso de la instrucción switch, el break cumple una función similar: indica que, una vez
+ejecutado el bloque correspondiente a un caso, el programa debe abandonar el switch en lugar de
+continuar evaluando los casos siguientes.
+
+Sintaxis:
+
+    break;
+
+Uso habitual dentro de un ciclo, normalmente condicionado por un if:
+
+    while (condición)
+    {
+        if (condiciónDeCorte)
+        {
+            break;
+        }
+        // instrucciones que se ejecutan mientras no se haya interrumpido el ciclo
+    }
+    // la ejecución continúa aquí después del break
+
+Explicación de cada parte:
+- break: palabra reservada que interrumpe de inmediato la estructura que la contiene.
+- ; (punto y coma): obligatorio al final de la instrucción.
+- if (condiciónDeCorte): break casi siempre se ubica dentro de un if. Sin condición, el ciclo se
+  interrumpiría siempre en la primera repetición.
+- Alcance: break solo abandona la estructura más interna que lo contiene. En ciclos anidados,
+  el ciclo exterior continúa su ejecución.
+- Dentro de un switch, break se coloca al final de cada case para salir del switch.
+- Fuera de un ciclo o de un switch, break produce un error de compilación.
+
+En resumen, la instrucción break permite finalizar de forma anticipada un bucle o un switch,
+interrumpiendo su ejecución antes de que se complete de la manera habitual.
+*/
+
+namespace M3_03_InstruccionBreak
 {
     internal class Program
     {
