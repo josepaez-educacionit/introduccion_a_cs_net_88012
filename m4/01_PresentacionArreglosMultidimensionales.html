@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Arreglos multidimensionales en C#</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,800;110,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Concepto: la tabla como plano cuadriculado. Misma identidad visual que la presentación de POO del módulo.
+   Papel técnico con cuadrícula, tinta azul de delineante y un lápiz ámbar para resaltar. */
+:root {
+  --bg: #f4f5fc;
+  --panel: #ffffff;
+  --fg: #15163f;
+  --muted: #4d5079;
+  --line: #d6d9ee;
+  --ink: #2a4bdc;
+  --ink-soft: #e5e9fd;
+  --accent: #c8f20d;
+  --accent-fg: #15163f;
+  --ok: #12701f;
+  --ok-soft: #e6f8d2;
+  --bad: #c0261f;
+  --bad-soft: #fbe6e4;
+  --code-bg: #15163f;
+  --code-fg: #e8eaff;
+  --code-line: #26296a;
+  --code-hl: #2d3aa3;
+  --tk-k: #94a9ff;
+  --tk-t: #b4f23a;
+  --tk-s: #ffd36e;
+  --tk-c: #9296cc;
+  --tk-n: #ff9d8a;
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+    --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+    --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+    --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+  --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+  --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+  --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+.bar {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-stretch: 110%; letter-spacing: .02em; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand b { color: var(--ink); }
+.tools { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); font-size: .85rem; font-weight: 500;
+}
+.icon-btn:hover { border-color: var(--ink); }
+
+.stage {
+  overflow-y: auto; overflow-x: hidden; min-height: 0;
+  padding-block: clamp(16px, 3vh, 36px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: clamp(16px, 1.25vw + 6px, 20px);
+}
+.slide { max-width: 1180px; margin: 0 auto; display: grid; gap: clamp(14px, 2.2vh, 26px); animation: enter .35s ease both; }
+.slide[hidden] { display: none; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } * { transition: none !important; } }
+
+.eyebrow { margin: 0; font-family: var(--font-mono); font-size: .72em; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
+h1, h2, h3 { font-family: var(--font-display); font-stretch: 105%; font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.7rem); }
+h3 { font-size: 1.15em; line-height: 1.2; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 1.1em; color: var(--muted); }
+.hl-text { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 55%, transparent) 62%); }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+p code, li code, td code { background: var(--ink-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); align-items: start; }
+.cols.wide-left { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
+@media (max-width: 860px) { .cols, .cols.wide-left { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card.key { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
+.card h3 { margin-bottom: 6px; }
+.card p { color: var(--muted); font-size: .92em; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: .68em; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--ink-soft); color: var(--ink); margin-bottom: 8px; }
+.tag.now { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* Controles */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .btn {
+  min-height: 40px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 500; font-size: .88em;
+}
+.seg button:hover, .btn:hover { border-color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.btn.small { min-height: 34px; padding: 3px 10px; font-size: .8em; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+label.field { display: grid; gap: 4px; font-size: .8em; color: var(--muted); font-weight: 500; }
+input[type="text"], input[type="number"] {
+  min-height: 40px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font: inherit; width: 100%; min-width: 0;
+}
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+
+/* Código */
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
+.code-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 6px 14px; font-family: var(--font-mono); font-size: .7em; color: var(--tk-c); border-bottom: 1px solid var(--code-line); }
+.code-head button { background: transparent; border: 1px solid var(--code-line); color: var(--code-fg); border-radius: 6px; padding: 2px 10px; font-size: 1em; min-height: 28px; }
+.code-body { overflow-x: auto; padding: 10px 0; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; }
+.ln { display: flex; white-space: pre; padding-right: 16px; }
+.ln i { flex: 0 0 2.6em; text-align: right; padding-right: 1em; color: var(--tk-c); font-style: normal; user-select: none; opacity: .7; }
+.ln.on { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent); }
+.k { color: var(--tk-k); } .t { color: var(--tk-t); } .s { color: var(--tk-s); } .c { color: var(--tk-c); font-style: italic; } .n { color: var(--tk-n); }
+pre.snip { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 12px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; border: 1px solid var(--line); }
+pre.snip.bad { box-shadow: inset 4px 0 0 var(--bad); }
+pre.snip.good { box-shadow: inset 4px 0 0 var(--ok); }
+
+.notes { display: grid; gap: 6px; }
+.note { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 12px; min-height: 40px; font-size: .88em; font-weight: 500; }
+.note[aria-pressed="true"] { border-color: var(--ink); background: var(--ink-soft); }
+.explain { background: var(--ink-soft); border-radius: 8px; padding: 10px 14px; font-size: .9em; min-height: 3.6em; }
+
+.out { border-radius: 10px; padding: 12px 14px; border: 1px solid var(--line); background: var(--panel); font-size: .92em; min-height: 4.2em; }
+.out.ok { background: var(--ok-soft); border-color: var(--ok); }
+.out.bad { background: var(--bad-soft); border-color: var(--bad); }
+.state { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--font-mono); font-size: .85em; margin-top: 6px; }
+.state b { color: var(--ink); }
+
+.log { font-family: var(--font-mono); font-size: .8em; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 10px 14px; min-height: 9em; max-height: 14em; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+.log .e { color: var(--tk-n); } .log .g { color: var(--tk-t); } .log .m { color: var(--tk-c); }
+
+table { border-collapse: collapse; width: 100%; font-size: .88em; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .75em; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.scroll-x { overflow-x: auto; }
+.yes { color: var(--ok); font-weight: 700; } .no { color: var(--bad); font-weight: 700; }
+
+/* Tarjetas de objeto */
+.obj { background: var(--panel); border: 2px solid var(--ink); border-radius: 6px; min-width: 0; }
+.obj header { background: var(--ink); color: var(--panel); padding: 6px 12px; font-family: var(--font-mono); font-size: .8em; font-weight: 700; }
+.obj .sect { padding: 8px 12px; border-top: 1px dashed var(--line); font-family: var(--font-mono); font-size: .82em; display: grid; gap: 2px; }
+.obj .sect h4 { margin: 0 0 2px; font: 500 .72em var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.obj.template { border-style: dashed; }
+.obj.template header { background: var(--accent); color: var(--accent-fg); }
+.insts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.insts .obj { animation: enter .3s ease both; }
+.priv { color: var(--bad); } .pub { color: var(--ok); }
+
+/* Composición */
+.compo { display: grid; gap: 12px; }
+.compo .children { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; padding-left: 18px; border-left: 3px solid var(--accent); margin-left: 8px; }
+
+.illus { width: 100%; height: auto; max-height: 46vh; }
+.illus text { font-family: var(--font-mono); font-size: 13px; fill: var(--fg); }
+.illus .muted { fill: var(--muted); }
+.illus .stroke { fill: none; stroke: var(--ink); stroke-width: 2; }
+.illus .dash { stroke-dasharray: 5 4; }
+.illus .wall { fill: var(--wall, var(--ink-soft)); stroke: var(--ink); stroke-width: 2; }
+.illus .door { fill: var(--accent); }
+
+/* Navegación */
+.foot {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  padding-top: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 4px solid var(--accent); background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+.progress { display: grid; gap: 4px; min-width: 0; }
+.track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--ink); transition: width .3s ease; }
+.counter { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.counter span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-btn { min-width: 48px; height: 44px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); font-weight: 600; padding: 0 16px; }
+.nav-btn.alt { background: var(--panel); color: var(--ink); }
+.nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+.agenda { display: grid; gap: 10px; counter-reset: p; }
+.agenda button { display: grid; grid-template-columns: 3.2em 1fr; gap: 6px; align-items: baseline; text-align: left; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.agenda button:hover { border-color: var(--ink); }
+.agenda .pn { font-family: var(--font-mono); color: var(--ink); font-weight: 700; font-size: .85em; }
+.agenda small { display: block; color: var(--muted); font-size: .8em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+/* Tablas (arreglos 2D) */
+.tbl { display: grid; gap: 6px; align-items: stretch; max-width: 560px; }
+.tbl .hd { font-family: var(--font-mono); font-size: .72em; color: var(--muted); text-align: center; align-self: center; padding: 2px 4px; }
+.tbl .hd.on { color: var(--ink); font-weight: 700; }
+.cell { min-height: 54px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel); color: var(--fg); font-family: var(--font-mono); font-weight: 700; font-size: 1em; display: grid; place-items: center; position: relative; padding: 0; }
+button.cell:hover { border-color: var(--ink); }
+.cell small { position: absolute; top: 2px; left: 6px; font-size: .58em; color: var(--muted); font-weight: 500; }
+.cell.rc { background: var(--ink-soft); }
+.cell.vis { background: var(--ink-soft); border-color: var(--ink); }
+.cell.on, .cell.cur { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
+.cell.on small, .cell.cur small { color: var(--accent-fg); }
+.cell.occ { background: var(--bad-soft); border-color: var(--bad); }
+.cell.free { background: var(--ok-soft); border-color: var(--ok); }
+.cell.mini { min-height: 34px; min-width: 34px; font-size: .85em; }
+.strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.strip .cell { width: 54px; }
+.shape { display: grid; gap: 6px; justify-items: start; }
+.shape .r { display: flex; gap: 6px; align-items: center; }
+.shape .r > span { font-family: var(--font-mono); font-size: .72em; color: var(--muted); width: 3.2em; }
+.stepper { display: inline-flex; align-items: center; gap: 6px; }
+.stepper output { font-family: var(--font-mono); font-weight: 700; min-width: 1.5em; text-align: center; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.fact { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: .82em; }
+.fact b { display: block; color: var(--ink); font-size: 1.3em; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="bar">
+    <div class="brand">ARREGLOS MULTIDIMENSIONALES <b>/</b> MÓDULO 4</div>
+    <div class="tools">
+      <button class="icon-btn" data-go="2" aria-label="Ir al índice">Índice</button>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+      <button class="icon-btn" id="fsBtn" aria-label="Pantalla completa">Pantalla completa</button>
+    </div>
+  </div>
+
+  <main class="stage" id="stage" tabindex="-1">
+
+    <!-- 1. Portada -->
+    <section class="slide" data-title="Portada">
+      <div class="cols" style="align-items:center">
+        <div style="display:grid;gap:16px">
+          <p class="eyebrow">Introducción a C# y .NET · Módulo 4</p>
+          <h1 style="font-size:clamp(2rem,4.2vw,3.3rem)">Arreglos <span class="hl-text">multidimensionales</span></h1>
+          <p class="lead">Tablas de datos en C#: declararlas, consultarlas y recorrerlas.</p>
+          <div class="row"><button class="btn primary" data-go="3">Comenzar</button><button class="btn" data-go="2">Ver el índice</button></div>
+        </div>
+        <svg class="illus" viewBox="0 0 520 300" role="img" aria-label="Una tabla de tres filas y cuatro columnas con las notas de tres estudiantes. La celda de la fila 1, columna 2 está resaltada y etiquetada notas[1, 2]">
+          <g class="muted" font-size="12" text-anchor="middle">
+            <text x="130" y="34">col 0</text><text x="200" y="34">col 1</text><text x="270" y="34">col 2</text><text x="340" y="34">col 3</text>
+          </g>
+          <g text-anchor="end" font-size="12"><text x="86" y="82" class="muted">fila 0</text><text x="86" y="152" class="muted">fila 1</text><text x="86" y="222" class="muted">fila 2</text></g>
+          <g id="coverCells"></g>
+                    <rect x="388" y="134" width="124" height="34" rx="6" fill="var(--accent)"/>
+          <text x="450" y="156" text-anchor="middle" style="fill:var(--accent-fg);font-weight:700">notas[1, 2]</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2. Índice -->
+    <section class="slide" data-title="Índice">
+      <header><p class="eyebrow">Recorrido</p><h2>Seis partes, de lo simple a lo completo</h2></header>
+      <div class="agenda cols" style="align-items:stretch">
+        <button data-go="3"><span class="pn">P1</span><span>Pensar en tablas<small>Filas, columnas e índices</small></span></button>
+        <button data-go="5"><span class="pn">P2</span><span>Crear y usar una tabla<small>Declarar, leer, escribir, tamaños</small></span></button>
+        <button data-go="8"><span class="pn">P3</span><span>Recorrer una tabla<small>Bucles anidados y ejemplos</small></span></button>
+        <button data-go="11"><span class="pn">P4</span><span>Errores y límites<small>Índices invertidos y fuera de rango</small></span></button>
+        <button data-go="13"><span class="pn">P5</span><span>Más allá de las dos dimensiones<small>Tres dimensiones y arreglos escalonados</small></span></button>
+        <button data-go="15"><span class="pn">P6</span><span>Resumen y práctica<small>Ejercicios y una solución</small></span></button>
+      </div>
+    </section>
+
+    <!-- 3. De lista a tabla -->
+    <section class="slide" data-title="De la lista a la tabla">
+      <header><p class="eyebrow">Parte 1 · Pensar en tablas</p><h2>Algunos datos no caben en una fila</h2></header>
+      <p class="lead">Los datos con forma de tabla se leen mejor en dos dimensiones.</p>
+      <div class="seg" id="shapeTabs" role="group" aria-label="Forma de organizar los datos">
+        <button type="button" aria-pressed="true" data-v="1">Una dimensión · int[]</button>
+        <button type="button" aria-pressed="false" data-v="2">Dos dimensiones · int[,]</button>
+      </div>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div id="shapeHost"></div>
+          <div class="explain" id="shapeNote" aria-live="polite"></div>
+        </div>
+        <pre class="snip" id="shapeCode"></pre>
+      </div>
+    </section>
+
+    <!-- 4. Anatomía -->
+    <section class="slide" data-title="Anatomía de una tabla">
+      <header><p class="eyebrow">Parte 1 · Pensar en tablas</p><h2>Filas, columnas e índices</h2></header>
+      <p class="lead">Dos índices desde 0: <code>[fila, columna]</code>. Tocá una celda.</p>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div id="anaHost"></div>
+          <div class="out" id="anaOut" aria-live="polite"></div>
+        </div>
+        <div class="card key"><h3>Tres reglas</h3><ul class="clean"><li>Primero la <b>fila</b>, después la <b>columna</b>.</li><li>Los índices empiezan en <b>0</b>.</li><li>Tamaño fijo y <b>un solo tipo</b> de dato.</li></ul></div>
+      </div>
+    </section>
+
+    <!-- 5. Declarar y crear -->
+    <section class="slide" data-title="Declarar y crear">
+      <header><p class="eyebrow">Parte 2 · Crear y usar una tabla</p><h2>Declarar y crear una tabla</h2></header>
+      <p class="lead">La coma indica las dimensiones. Elegí una parte del código.</p>
+      <div class="codeview" data-code="decl"></div>
+    </section>
+
+    <!-- 6. Acceder y modificar -->
+    <section class="slide" data-title="Leer y escribir">
+      <header><p class="eyebrow">Parte 2 · Crear y usar una tabla</p><h2>Leer y modificar un elemento</h2></header>
+      <p class="lead">La tabla es de 3 × 4: probá la fila 3 o la columna 4.</p>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0">
+          <form id="rwForm" class="row" autocomplete="off">
+            <label class="field">Fila<input type="number" id="rwF" value="1" step="1"></label>
+            <label class="field">Columna<input type="number" id="rwC" value="2" step="1"></label>
+            <label class="field">Valor nuevo<input type="number" id="rwV" value="9" step="1"></label>
+            <button class="btn primary" type="submit" data-act="read">Leer</button>
+            <button class="btn" type="button" id="rwWrite">Escribir</button>
+          </form>
+          <div id="rwHost"></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <pre class="snip" id="rwCode"></pre>
+          <div class="out" id="rwOut" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Tamaños -->
+    <section class="slide" data-title="Tamaños">
+      <header><p class="eyebrow">Parte 2 · Crear y usar una tabla</p><h2>Length, GetLength y Rank</h2></header>
+      <p class="lead">Se consulta el tamaño en lugar de escribirlo a mano.</p>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="row">
+            <div><span class="sr" id="lbF">Filas</span><div class="stepper" role="group" aria-labelledby="lbF"><span class="mono" aria-hidden="true">Filas</span><button class="btn small" type="button" data-sz="f-1" aria-label="Menos filas">&minus;</button><output id="szF">3</output><button class="btn small" type="button" data-sz="f+1" aria-label="Más filas">+</button></div></div>
+            <div><span class="sr" id="lbC">Columnas</span><div class="stepper" role="group" aria-labelledby="lbC"><span class="mono" aria-hidden="true">Columnas</span><button class="btn small" type="button" data-sz="c-1" aria-label="Menos columnas">&minus;</button><output id="szC">4</output><button class="btn small" type="button" data-sz="c+1" aria-label="Más columnas">+</button></div></div>
+          </div>
+          <div id="szHost"></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <pre class="snip" id="szCode"></pre>
+          <div class="facts" id="szFacts"></div>
+          
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Recorrido -->
+    <section class="slide" data-title="Recorrido con bucles anidados">
+      <header><p class="eyebrow">Parte 3 · Recorrer una tabla</p><h2>Recorrer la tabla: bucles anidados</h2></header>
+      <p class="lead">El bucle externo elige la fila; el interno, la columna.</p>
+      <div class="seg" id="recTabs" role="group" aria-label="Orden del recorrido">
+        <button type="button" aria-pressed="true" data-m="f">Por filas (fila afuera)</button>
+        <button type="button" aria-pressed="false" data-m="c">Por columnas (columna afuera)</button>
+      </div>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div id="recHost"></div>
+          <div class="row">
+            <button class="btn primary" type="button" id="recStep">Paso</button>
+            <button class="btn" type="button" id="recPlay" aria-pressed="false">Auto</button>
+            <button class="btn" type="button" id="recReset">Reiniciar</button>
+          </div>
+          <div class="out" id="recState" aria-live="polite"></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="codeview" data-code="recF"></div>
+          <div class="codeview" data-code="recC" hidden></div>
+          <div class="log" id="recLog" aria-label="Salida de consola"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Promedios -->
+    <section class="slide" data-title="Ejemplo: promedios">
+      <header><p class="eyebrow">Parte 3 · Recorrer una tabla</p><h2>Promedio de cada estudiante</h2></header>
+      <p class="lead">Elegí un estudiante para ver su promedio.</p>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="seg" id="avgTabs" role="group" aria-label="Estudiante"></div>
+          <div id="avgHost"></div>
+          <button class="btn" type="button" id="avgFix" aria-pressed="false">Corregir notas[0, 0] = 10</button>
+          <div class="out" id="avgOut" aria-live="polite"></div>
+        </div>
+        <div class="codeview" data-code="avg"></div>
+      </div>
+    </section>
+
+    <!-- 10. Cine -->
+    <section class="slide" data-title="Ejemplo: sala de cine">
+      <header><p class="eyebrow">Parte 3 · Recorrer una tabla</p><h2>Sala de cine: asientos libres</h2></header>
+      <p class="lead">Tocá un asiento para reservarlo o liberarlo. <code>L</code> libre, <code>O</code> ocupado.</p>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="mono" style="text-align:center;padding:6px;border-bottom:4px solid var(--ink);max-width:560px;font-size:.8em;color:var(--muted)">PANTALLA</div>
+          <div id="cineHost"></div>
+          <div class="out" id="cineOut" aria-live="polite"></div>
+        </div>
+        <div class="codeview" data-code="cine"></div>
+      </div>
+    </section>
+
+    <!-- 11. Errores -->
+    <section class="slide" data-title="Errores frecuentes">
+      <header><p class="eyebrow">Parte 4 · Errores y límites</p><h2>Tres errores frecuentes</h2></header>
+      <div class="seg" id="errTabs" role="group" aria-label="Error frecuente">
+        <button type="button" aria-pressed="true" data-e="0">Índices invertidos</button>
+        <button type="button" aria-pressed="false" data-e="1">Pasarse del último índice</button>
+        <button type="button" aria-pressed="false" data-e="2">Dimensión equivocada</button>
+      </div>
+      <div class="cols">
+        <div style="display:grid;gap:6px"><span class="tag">Incorrecto</span><pre class="snip bad" id="errBad"></pre></div>
+        <div style="display:grid;gap:6px"><span class="tag now">Correcto</span><pre class="snip good" id="errGood"></pre></div>
+      </div>
+      <div class="explain" id="errNote" aria-live="polite"></div>
+    </section>
+
+    <!-- Prueba rápida -->
+    <section class="slide" data-title="Prueba rápida">
+      <header><p class="eyebrow">Parte 4 · Errores y límites</p><h2>¿Qué hace <code>notas[3, 0]</code>?</h2></header>
+      <p class="lead">La tabla tiene 3 filas y 4 columnas.</p>
+      <div class="seg" id="quizTabs" role="group" aria-label="Respuestas">
+        <button type="button" aria-pressed="false" data-a="0">Devuelve 0</button>
+        <button type="button" aria-pressed="false" data-a="1">Lanza IndexOutOfRangeException</button>
+        <button type="button" aria-pressed="false" data-a="2">Devuelve el primer valor de la fila 0</button>
+      </div>
+      <div class="out" id="quizOut" aria-live="polite" style="min-height:3em"></div>
+    </section>
+
+    <!-- 12. Tres dimensiones -->
+    <section class="slide" data-title="Tres dimensiones">
+      <header><p class="eyebrow">Parte 5 · Más allá de las dos dimensiones</p><h2>Tres dimensiones: un cine con varias salas</h2></header>
+      <p class="lead">Otra coma, otra dimensión: el primer índice elige la sala.</p>
+      <div class="seg" id="layerTabs" role="group" aria-label="Sala"></div>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div id="d3Host"></div>
+          <div class="out" id="d3Out" aria-live="polite"></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <svg class="illus" viewBox="0 0 320 190" role="img" aria-label="Dos tablas apiladas que representan la sala 0 y la sala 1">
+            <g id="l1"><path d="M60 80 L240 80 L290 40 L110 40 Z" class="wall"/><text x="170" y="64" text-anchor="middle">sala 1</text></g>
+            <g id="l0"><path d="M30 150 L210 150 L260 110 L80 110 Z" class="wall"/><text x="145" y="134" text-anchor="middle">sala 0</text></g>
+            <path class="stroke dash" d="M30 150 L60 80 M210 150 L240 80 M260 110 L290 40 M80 110 L110 40"/>
+            <text x="30" y="180" class="muted">[sala, fila, columna]</text>
+          </svg>
+          <pre class="snip">double[,,] datos = new double[2, 3, 4];
+// 2 salas × 3 filas × 4 asientos</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. Escalonados -->
+    <section class="slide" data-title="Rectangulares y escalonados">
+      <header><p class="eyebrow">Parte 5 · Más allá de las dos dimensiones</p><h2>Rectangular o escalonado</h2></header>
+      <p class="lead">Dos formas de armar una tabla en C#.</p>
+      <div class="seg" id="jagTabs" role="group" aria-label="Tipo de arreglo">
+        <button type="button" aria-pressed="true" data-k="rect">Rectangular · int[,]</button>
+        <button type="button" aria-pressed="false" data-k="jag">Escalonado · int[][]</button>
+      </div>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0"><div id="jagHost"></div><pre class="snip" id="jagCode"></pre></div>
+        
+      </div>
+    </section>
+
+    <!-- 14. Resumen -->
+    <section class="slide" data-title="Resumen">
+      <header><p class="eyebrow">Para recordar</p><h2>En resumen</h2></header>
+      <div class="grid3">
+        <div class="card key"><span class="tag">Declarar</span><h3>int[,] t = new int[3, 4]</h3><p>Coma = dimensión.</p></div>
+        <div class="card"><span class="tag">Acceder</span><h3>t[fila, columna]</h3><p>Índices desde 0.</p></div>
+        <div class="card"><span class="tag">Consultar</span><h3>GetLength(d)</h3><p>0 = filas, 1 = columnas.</p></div>
+        <div class="card"><span class="tag">Recorrer</span><h3>Dos bucles anidados</h3><p>Fila afuera, columna adentro.</p></div>
+        <div class="card"><span class="tag">Tipo único</span><h3>Todo del mismo tipo</h3><p>Nunca mezclados.</p></div>
+        <div class="card"><span class="tag">Más allá</span><h3>3 o más dimensiones</h3><p>Una coma más por dimensión.</p></div>
+      </div>
+    </section>
+
+    <!-- 15. Práctica -->
+    <section class="slide" data-title="Para practicar">
+      <header><p class="eyebrow">Ahora te toca</p><h2>Ejercicios</h2></header>
+      <div class="grid3">
+        <div class="card"><span class="tag now">Básico</span><h3>Total de la tabla</h3><p>Sumá todos los valores.</p></div>
+        <div class="card"><span class="tag now">Básico</span><h3>Mejor nota</h3><p>Valor y posición.</p><button class="btn small" type="button" data-go="17" style="margin-top:8px">Ver la solución</button></div>
+        <div class="card"><span class="tag">Intermedio</span><h3>Promedio por evaluación</h3><p>Recorrido por columnas.</p></div>
+        <div class="card"><span class="tag">Intermedio</span><h3>Sala llena</h3><p>Contá libres por fila.</p></div>
+        <div class="card"><span class="tag">Desafío</span><h3>Tabla de multiplicar</h3><p>Un <code>int[10, 10]</code>.</p></div>
+        <div class="card"><span class="tag">Desafío</span><h3>Transponer</h3><p>De 3×4 a 4×3.</p></div>
+      </div>
+    </section>
+
+    <!-- 16. Solución -->
+    <section class="slide" data-title="Solución: mejor nota">
+      <header><p class="eyebrow">Solución · Mejor nota</p><h2>Buscar el mayor valor y su posición</h2></header>
+      <p class="lead">Se guarda el mejor valor visto y se reemplaza cuando aparece uno mayor.</p>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div id="mjHost"></div>
+          <div class="row">
+            <button class="btn primary" type="button" id="mjStep">Paso</button>
+            <button class="btn" type="button" id="mjPlay" aria-pressed="false">Auto</button>
+            <button class="btn" type="button" id="mjMix">Mezclar valores</button>
+            <button class="btn" type="button" id="mjReset">Reiniciar</button>
+          </div>
+          <div class="out" id="mjOut" aria-live="polite"></div>
+          <div class="log" id="mjLog" aria-label="Registro de comparaciones"></div>
+        </div>
+        <div class="codeview" data-code="mejor"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="foot" aria-label="Navegación de la presentación">
+    <button class="nav-btn alt" id="prev" aria-label="Diapositiva anterior">&larr; Anterior</button>
+    <div class="progress">
+      <div class="track" role="progressbar" aria-label="Progreso" aria-valuemin="1" id="track"><div class="fill" id="fill"></div></div>
+      <div class="counter"><span id="ctitle"></span><span id="cnum"></span></div>
+    </div>
+    <button class="nav-btn" id="next" aria-label="Diapositiva siguiente">Siguiente &rarr;</button>
+  </nav>
+</div>
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
+
+  /* ---------- Resaltado de sintaxis C# ---------- */
+  var KW = new Set("class static void return new if else for while foreach in int double bool string true false var using".split(" "));
+  var TY = new Set("Console IndexOutOfRangeException Math".split(" "));
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function hl(line) {
+    var re = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_]\w*\b)/g, out = "", last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      var t = m[0], cls = "";
+      if (m[1]) cls = "c"; else if (m[2]) cls = "s"; else if (m[3]) cls = "n";
+      else if (KW.has(t)) cls = "k"; else if (TY.has(t)) cls = "t";
+      out += cls ? '<span class="' + cls + '">' + esc(t) + "</span>" : esc(t);
+      last = re.lastIndex;
+    }
+    return out + esc(line.slice(last));
+  }
+  function setSnip(pre, text) { pre.innerHTML = text.split("\n").map(hl).join("\n"); }
+  $$("pre.snip").forEach(function (p) { if (p.textContent.trim()) setSnip(p, p.textContent); });
+
+  /* ---------- Datos base ---------- */
+  var NOTAS0 = [[7, 8, 6, 9], [5, 6, 7, 8], [9, 10, 8, 9]];
+  function copy2(a) { return a.map(function (r) { return r.slice(); }); }
+
+  /* ---------- Cuadrícula reutilizable ---------- */
+  // opts: {rows, cols, val(r,c), click(r,c), idx (muestra [r,c] en la celda), rowHd, colHd}
+  function grid(host, o) {
+    host.innerHTML = "";
+    var g = el("div", "tbl");
+    g.style.gridTemplateColumns = "auto repeat(" + o.cols + ", minmax(0, 1fr))";
+    g.appendChild(el("span"));
+    var colHd = [], rowHd = [], cells = [];
+    for (var c = 0; c < o.cols; c++) { var h = el("span", "hd", (o.colName || "col ") + c); colHd.push(h); g.appendChild(h); }
+    for (var r = 0; r < o.rows; r++) {
+      var rh = el("span", "hd", (o.rowName || "fila ") + r); rowHd.push(rh); g.appendChild(rh); cells[r] = [];
+      for (c = 0; c < o.cols; c++) {
+        var cell = el(o.click ? "button" : "div", "cell" + (o.mini ? " mini" : ""));
+        if (o.click) { cell.type = "button"; (function (rr, cc) { cell.addEventListener("click", function () { o.click(rr, cc); }); })(r, c); }
+        if (o.idx) cell.appendChild(el("small", "", r + "," + c));
+        cell.appendChild(el("span", "v", String(o.val(r, c))));
+        cell.setAttribute("aria-label", "[" + r + ", " + c + "] = " + o.val(r, c));
+        cells[r][c] = cell; g.appendChild(cell);
+      }
+    }
+    host.appendChild(g);
+    return { cells: cells, colHd: colHd, rowHd: rowHd };
+  }
+  function clear(api, cls) { api.cells.forEach(function (row) { row.forEach(function (c) { c.classList.remove(cls); }); }); }
+
+  /* ---------- Visor de código con notas ---------- */
+  var CODE = {
+    decl: { file: "Declaracion.cs", src: [
+      "int[,] notas = new int[3, 4];", "",
+      "int[,] notasConValores = new int[3, 4]", "{",
+      "    {7, 8, 6, 9},   // Estudiante 0", "    {5, 6, 7, 8},   // Estudiante 1", "    {9, 10, 8, 9}   // Estudiante 2", "};", "",
+      "string[,] asientos = new string[3, 4];", "double[,,] datos = new double[2, 3, 4];"],
+      notes: [
+        ["La coma en int[,]", [1, 1], "Una coma dentro de los corchetes indica dos dimensiones. Con dos comas serían tres dimensiones."],
+        ["Tamaño [3, 4]", [1, 1], "3 filas y 4 columnas. Se fija al crear y no cambia. Sin valores iniciales, cada elemento arranca en el valor por defecto (0 para int)."],
+        ["Con valores iniciales", [3, 8], "Cada par de llaves interno es una fila. Todas las filas deben tener la misma cantidad de valores y coincidir con el tamaño indicado."],
+        ["Otros tipos", [10, 10], "Cualquier tipo sirve, pero todos los elementos son del mismo. En string[,] cada celda arranca en null."],
+        ["Tres dimensiones", [11, 11], "Dos comas: se indican tres tamaños. Es menos frecuente, pero sigue la misma lógica."]] },
+    recF: { file: "Recorrido por filas", src: [
+      "for (int fila = 0; fila < notas.GetLength(0); fila++)", "{",
+      "    for (int columna = 0; columna < notas.GetLength(1); columna++)", "    {",
+      "        Console.Write(notas[fila, columna] + \" \");", "    }", "    Console.WriteLine();", "}"], notes: [] },
+    recC: { file: "Recorrido por columnas", src: [
+      "for (int columna = 0; columna < notas.GetLength(1); columna++)", "{",
+      "    for (int fila = 0; fila < notas.GetLength(0); fila++)", "    {",
+      "        Console.Write(notas[fila, columna] + \" \");", "    }", "    Console.WriteLine();", "}"], notes: [] },
+    avg: { file: "Promedios.cs", src: [
+      "int[,] notas = new int[3, 4] { {7, 8, 6, 9}, {5, 6, 7, 8}, {9, 10, 8, 9} };", "",
+      "int cantidadEstudiantes = notas.GetLength(0);", "int cantidadEvaluaciones = notas.GetLength(1);", "",
+      "for (int estudiante = 0; estudiante < cantidadEstudiantes; estudiante++)", "{", "    int sumaNotas = 0;", "",
+      "    for (int evaluacion = 0; evaluacion < cantidadEvaluaciones; evaluacion++)", "    {",
+      "        sumaNotas += notas[estudiante, evaluacion];", "    }", "",
+      "    double promedio = (double)sumaNotas / cantidadEvaluaciones;",
+      "    Console.WriteLine(\"Promedio del estudiante \" + estudiante + \": \" + promedio);", "}"],
+      notes: [
+        ["Tamaños consultados", [3, 4], "GetLength(0) son las filas (estudiantes) y GetLength(1) las columnas (evaluaciones). Si la tabla cambia de tamaño, el código sigue funcionando."],
+        ["Un acumulador por fila", [8, 8], "sumaNotas vuelve a cero con cada estudiante, por eso se declara dentro del bucle externo."],
+        ["Bucle interno", [10, 13], "Recorre las columnas de la fila actual y suma cada nota."],
+        ["Promedio", [15, 16], "El cast a double evita que la división de enteros descarte los decimales."]] },
+    mejor: { file: "MejorNota.cs (solución)", src: [
+      "int mayor = notas[0, 0];", "int filaMayor = 0;", "int columnaMayor = 0;", "",
+      "for (int fila = 0; fila < notas.GetLength(0); fila++)", "{",
+      "    for (int columna = 0; columna < notas.GetLength(1); columna++)", "    {",
+      "        if (notas[fila, columna] > mayor)", "        {",
+      "            mayor = notas[fila, columna];", "            filaMayor = fila;", "            columnaMayor = columna;",
+      "        }", "    }", "}", "",
+      "Console.WriteLine(\"Mejor nota: \" + mayor + \" en [\" + filaMayor + \", \" + columnaMayor + \"]\");"],
+      notes: [
+        ["Punto de partida", [1, 3], "Se parte del primer elemento, no de 0: así funciona aunque todas las notas fueran negativas. También se guarda dónde está."],
+        ["Comparar", [9, 9], "Cada celda se compara con el mejor valor visto hasta ahora. Si es igual, se conserva la primera posición."],
+        ["Actualizar", [11, 13], "Cuando aparece un valor mayor se actualizan los tres datos juntos: valor, fila y columna."],
+        ["Resultado", [18, 18], "Al terminar los dos bucles, las tres variables describen la mejor nota de toda la tabla."]] },
+    cine: { file: "SalaDeCine.cs", src: [
+      "string[,] asientos = new string[3, 4]", "{", "    {\"L\", \"O\", \"L\", \"L\"},", "    {\"O\", \"O\", \"L\", \"O\"},", "    {\"L\", \"L\", \"L\", \"O\"}", "};", "",
+      "asientos[0, 0] = \"O\";   // se reserva fila 0, columna 0", "",
+      "int asientosLibres = 0;", "for (int fila = 0; fila < asientos.GetLength(0); fila++)", "{",
+      "    for (int columna = 0; columna < asientos.GetLength(1); columna++)", "    {",
+      "        if (asientos[fila, columna] == \"L\")", "        {", "            asientosLibres++;", "        }", "    }", "}", "",
+      "Console.WriteLine(\"Asientos libres: \" + asientosLibres + \" de \" + asientos.Length);"],
+      notes: [
+        ["Tabla de texto", [1, 6], "La misma estructura sirve para cualquier tipo. Aquí cada celda guarda \"L\" o \"O\"."],
+        ["Reservar", [8, 8], "Asignar a una posición cambia solo esa celda."],
+        ["Contar recorriendo", [10, 20], "Los dos bucles visitan cada asiento y el if cuenta solo los libres."],
+        ["Length", [22, 22], "Length devuelve el total de elementos: 3 × 4 = 12."]] }
+  };
+  var views = {};
+  function renderCode(host) {
+    var d = CODE[host.dataset.code]; if (!d) return;
+    var box = el("div", "code"), head = el("div", "code-head"), body = el("div", "code-body");
+    head.appendChild(el("span", "", d.file));
+    var cp = el("button", "", "Copiar"); cp.type = "button"; cp.setAttribute("aria-label", "Copiar el código");
+    cp.addEventListener("click", function () {
+      function done(ok) { cp.textContent = ok ? "Copiado" : "Seleccioná y copiá"; setTimeout(function () { cp.textContent = "Copiar"; }, 1500); }
+      try { navigator.clipboard.writeText(d.src.join("\n")).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+    });
+    head.appendChild(cp); box.appendChild(head);
+    var lines = d.src.map(function (l, i) {
+      var r = el("div", "ln"), n = el("i", "", String(i + 1)); n.setAttribute("aria-hidden", "true");
+      var c = el("span"); c.innerHTML = hl(l) || " "; r.appendChild(n); r.appendChild(c); body.appendChild(r); return r;
+    });
+    box.appendChild(body);
+    var wrap = el("div"); wrap.style.cssText = "display:grid;gap:10px;min-width:0"; wrap.appendChild(box);
+    var api = { mark: function (ranges) { lines.forEach(function (r, i) { var on = ranges.some(function (g) { return i + 1 >= g[0] && i + 1 <= g[1]; }); r.classList.toggle("on", on); }); } };
+    if (d.notes.length) {
+      var list = el("div", "notes"), ex = el("div", "explain"); ex.setAttribute("aria-live", "polite");
+      var btns = d.notes.map(function (n, i) {
+        var b = el("button", "note", n[0]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { select(i); }); list.appendChild(b); return b;
+      });
+      var select = function (i) { btns.forEach(function (b, j) { b.setAttribute("aria-pressed", String(i === j)); }); api.mark([d.notes[i][1]]); ex.textContent = d.notes[i][2]; };
+      wrap.appendChild(list); wrap.appendChild(ex); select(0);
+    }
+    host.appendChild(wrap); views[host.dataset.code] = api;
+  }
+  $$(".codeview").forEach(renderCode);
+
+  function seg(id, cb) {
+    var g = $(id); if (!g) return;
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      $$("button", g).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      cb(b);
+    });
+  }
+
+  /* ---------- Portada ---------- */
+  (function () {
+    var g = $("#coverCells"), ns = "http://www.w3.org/2000/svg";
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 4; c++) {
+      var hit = r === 1 && c === 2;
+      var rect = document.createElementNS(ns, "rect");
+      rect.setAttribute("x", 100 + c * 70); rect.setAttribute("y", 50 + r * 70); rect.setAttribute("width", 62); rect.setAttribute("height", 62); rect.setAttribute("rx", 6);
+      rect.setAttribute("fill", hit ? "var(--accent)" : "var(--panel)"); rect.setAttribute("stroke", "var(--ink)"); rect.setAttribute("stroke-width", 2);
+      var t = document.createElementNS(ns, "text");
+      t.setAttribute("x", 131 + c * 70); t.setAttribute("y", 87 + r * 70); t.setAttribute("text-anchor", "middle");
+      if (hit) t.setAttribute("style", "fill:var(--accent-fg);font-weight:700");
+      t.textContent = NOTAS0[r][c]; g.appendChild(rect); g.appendChild(t);
+    }
+  })();
+
+  /* ---------- Slide 3: lista vs tabla ---------- */
+  var FLAT = [7, 8, 6, 9, 5, 6, 7, 8, 9, 10, 8, 9];
+  function showShape(k) {
+    var h = $("#shapeHost"), n = $("#shapeNote"), code = $("#shapeCode");
+    if (k === 1) {
+      h.innerHTML = ""; var s = el("div", "strip");
+      FLAT.forEach(function (v, i) { var c = el("div", "cell"); c.appendChild(el("small", "", String(i))); c.appendChild(el("span", "", String(v))); c.setAttribute("aria-label", "posición " + i + ": " + v); s.appendChild(c); });
+      h.appendChild(s);
+      n.textContent = "¿Cuál es la nota del estudiante 1 en la evaluación 2? Hay que calcular la posición a mano: 1 × 4 + 2 = 6. Funciona, pero es fácil equivocarse.";
+      setSnip(code, "int[] notas = {7, 8, 6, 9, 5, 6, 7, 8, 9, 10, 8, 9};\nint nota = notas[1 * 4 + 2];   // cuenta manual");
+    } else {
+      grid(h, { rows: 3, cols: 4, val: function (r, c) { return NOTAS0[r][c]; }, idx: true, rowName: "est ", colName: "eval " });
+      n.textContent = "Ahora la estructura coincide con el problema: fila = estudiante, columna = evaluación. La posición se dice tal cual.";
+      setSnip(code, "int[,] notas = new int[3, 4]\n{\n    {7, 8, 6, 9},\n    {5, 6, 7, 8},\n    {9, 10, 8, 9}\n};\nint nota = notas[1, 2];   // estudiante 1, evaluación 2");
+    }
+  }
+  showShape(1); seg("#shapeTabs", function (b) { showShape(+b.dataset.v); });
+
+  /* ---------- Slide 4: anatomía ---------- */
+  var ana;
+  function anaPick(r, c) {
+    clear(ana, "on"); clear(ana, "rc");
+    ana.cells.forEach(function (row, i) { row.forEach(function (cell, j) { if (i === r || j === c) cell.classList.add("rc"); }); });
+    ana.cells[r][c].classList.remove("rc"); ana.cells[r][c].classList.add("on");
+    ana.rowHd.forEach(function (h, i) { h.classList.toggle("on", i === r); }); ana.colHd.forEach(function (h, j) { h.classList.toggle("on", j === c); });
+    var o = $("#anaOut"); o.className = "out ok"; o.innerHTML = "";
+    var p = el("p", "mono"); p.textContent = "notas[" + r + ", " + c + "] = " + NOTAS0[r][c]; o.appendChild(p);
+    o.appendChild(el("p", "", "Fila " + r + " (estudiante " + r + ") y columna " + c + " (evaluación " + c + ")."));
+  }
+  ana = grid($("#anaHost"), { rows: 3, cols: 4, val: function (r, c) { return NOTAS0[r][c]; }, click: anaPick, idx: true, rowName: "fila ", colName: "col " });
+  $("#anaOut").textContent = "Tocá una celda para ver su posición."; anaPick(1, 2);
+
+  /* ---------- Slide 6: leer y escribir ---------- */
+  var RW = copy2(NOTAS0), rwApi;
+  function rwDraw(sel) {
+    rwApi = grid($("#rwHost"), { rows: 3, cols: 4, val: function (r, c) { return RW[r][c]; }, idx: true });
+    if (sel) rwApi.cells[sel[0]][sel[1]].classList.add("on");
+  }
+  function rwRun(write) {
+    var f = Number($("#rwF").value), c = Number($("#rwC").value), v = Math.trunc(Number($("#rwV").value)), o = $("#rwOut"), code = $("#rwCode");
+    o.innerHTML = ""; var bad = !(Number.isInteger(f) && Number.isInteger(c) && f >= 0 && f < 3 && c >= 0 && c < 4);
+    var stmt = write ? "notas[" + f + ", " + c + "] = " + v + ";" : "int x = notas[" + f + ", " + c + "];";
+    setSnip(code, stmt);
+    if (bad) {
+      o.className = "out bad"; o.appendChild(el("p", "", "IndexOutOfRangeException: la posición [" + f + ", " + c + "] no existe."));
+      o.appendChild(el("p", "mono", "Filas válidas: 0 a 2 · Columnas válidas: 0 a 3")); rwDraw(null); return;
+    }
+    if (write) RW[f][c] = v;
+    o.className = "out ok"; o.appendChild(el("p", "mono", write ? "notas[" + f + ", " + c + "] ahora vale " + v : "x = " + RW[f][c]));
+    rwDraw([f, c]);
+  }
+  $("#rwForm").addEventListener("submit", function (e) { e.preventDefault(); rwRun(false); });
+  $("#rwWrite").addEventListener("click", function () { rwRun(true); });
+  rwDraw(null); setSnip($("#rwCode"), "int x = notas[1, 2];"); $("#rwOut").textContent = "Elegí una posición y tocá Leer o Escribir.";
+
+  /* ---------- Slide 7: tamaños ---------- */
+  var SZ = { f: 3, c: 4 };
+  function szDraw() {
+    $("#szF").textContent = SZ.f; $("#szC").textContent = SZ.c;
+    grid($("#szHost"), { rows: SZ.f, cols: SZ.c, val: function () { return 0; }, mini: true, idx: true });
+    setSnip($("#szCode"), "int[,] tabla = new int[" + SZ.f + ", " + SZ.c + "];");
+    var fa = $("#szFacts"); fa.innerHTML = "";
+    [["tabla.Length", SZ.f * SZ.c], ["GetLength(0)", SZ.f], ["GetLength(1)", SZ.c], ["tabla.Rank", 2]].forEach(function (p) {
+      var d = el("div", "fact", p[0]); d.appendChild(el("b", "", String(p[1]))); fa.appendChild(d);
+    });
+  }
+  $$("[data-sz]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.dataset.sz[0], d = b.dataset.sz.indexOf("+") > 0 ? 1 : -1;
+      SZ[k] = Math.max(1, Math.min(8, SZ[k] + d)); szDraw();
+    });
+  });
+  szDraw();
+
+  /* ---------- Slide 8: recorrido ---------- */
+  var REC = { m: "f", i: 0, timer: null, lines: [""] }, recApi, recSeq = [];
+  function recBuild() {
+    recSeq = [];
+    if (REC.m === "f") { for (var r = 0; r < 3; r++) for (var c = 0; c < 4; c++) recSeq.push([r, c, c === 3]); }
+    else { for (c = 0; c < 4; c++) for (r = 0; r < 3; r++) recSeq.push([r, c, r === 2]); }
+  }
+  function recReset() {
+    recStop(); REC.i = 0; REC.lines = [""]; recBuild();
+    recApi = grid($("#recHost"), { rows: 3, cols: 4, val: function (r, c) { return NOTAS0[r][c]; }, idx: true });
+    $("#recLog").innerHTML = ""; $("#recState").className = "out"; $("#recState").textContent = "Todavía no se visitó ninguna celda.";
+    $("#recStep").disabled = false; views.recF.mark([]); views.recC.mark([]);
+  }
+  function recStepOnce() {
+    if (REC.i >= recSeq.length) { recStop(); return; }
+    var s = recSeq[REC.i], r = s[0], c = s[1], first = REC.m === "f" ? c === 0 : r === 0, v = views[REC.m === "f" ? "recF" : "recC"];
+    clear(recApi, "cur"); recApi.cells.forEach(function (row) { row.forEach(function (x) { if (x.classList.contains("cur")) x.classList.remove("cur"); }); });
+    $$(".cell.cur", $("#recHost")).forEach(function (x) { x.classList.remove("cur"); });
+    if (REC.i > 0) { var p = recSeq[REC.i - 1]; recApi.cells[p[0]][p[1]].classList.add("vis"); }
+    recApi.cells[r][c].classList.add("cur");
+    v.mark(first ? [[1, 1], [3, 3], [5, 5]] : (s[2] ? [[3, 3], [5, 7]] : [[3, 3], [5, 5]]));
+    REC.lines[REC.lines.length - 1] += NOTAS0[r][c] + " ";
+    if (s[2]) REC.lines.push("");
+    var log = $("#recLog"); log.innerHTML = "";
+    REC.lines.forEach(function (t) { if (t) log.appendChild(el("div", "g", t)); });
+    var st = $("#recState"); st.className = "out ok"; st.innerHTML = "";
+    var m = el("p", "mono"); m.textContent = (REC.m === "f" ? "fila = " + r + "   columna = " + c : "columna = " + c + "   fila = " + r) + "   notas[" + r + ", " + c + "] = " + NOTAS0[r][c]; st.appendChild(m);
+    REC.i++;
+    if (REC.i >= recSeq.length) { st.appendChild(el("p", "", "Recorrido completo: 12 celdas visitadas (3 × 4).")); recStop(); $("#recStep").disabled = true; recApi.cells[r][c].classList.add("vis"); }
+  }
+  function recStop() { if (REC.timer) { clearInterval(REC.timer); REC.timer = null; } var b = $("#recPlay"); b.setAttribute("aria-pressed", "false"); b.textContent = "Auto"; }
+  $("#recStep").addEventListener("click", recStepOnce);
+  $("#recReset").addEventListener("click", recReset);
+  $("#recPlay").addEventListener("click", function () {
+    if (REC.timer) { recStop(); return; }
+    if (REC.i >= recSeq.length) recReset();
+    this.setAttribute("aria-pressed", "true"); this.textContent = "Pausa";
+    REC.timer = setInterval(recStepOnce, 650);
+  });
+  seg("#recTabs", function (b) {
+    REC.m = b.dataset.m; $$(".codeview[data-code^='rec']").forEach(function (h) { h.hidden = h.dataset.code !== (REC.m === "f" ? "recF" : "recC"); }); recReset();
+  });
+  recReset();
+
+  /* ---------- Slide 9: promedios ---------- */
+  var AV = { n: copy2(NOTAS0), who: 0, fix: false }, avApi;
+  function avDraw() {
+    AV.n = copy2(NOTAS0); if (AV.fix) AV.n[0][0] = 10;
+    avApi = grid($("#avgHost"), { rows: 3, cols: 4, val: function (r, c) { return AV.n[r][c]; }, idx: true, rowName: "est ", colName: "eval " });
+    var w = AV.who, sum = AV.n[w].reduce(function (a, b) { return a + b; }, 0), avg = sum / 4;
+    avApi.cells[w].forEach(function (c) { c.classList.add("vis"); }); avApi.rowHd[w].classList.add("on");
+    var o = $("#avgOut"); o.className = "out ok"; o.innerHTML = "";
+    var m = el("p", "mono"); m.textContent = "sumaNotas = " + AV.n[w].join(" + ") + " = " + sum; o.appendChild(m);
+    var m2 = el("p", "mono"); m2.textContent = "promedio = " + sum + " / 4 = " + avg.toLocaleString("es-AR"); o.appendChild(m2);
+    o.appendChild(el("p", "", "Promedio del estudiante " + w + ": " + avg.toLocaleString("es-AR")));
+    views.avg.mark([[8, 8], [10, 16]]);
+  }
+  var at = $("#avgTabs");
+  [0, 1, 2].forEach(function (i) { var b = el("button", "", "Estudiante " + i); b.type = "button"; b.dataset.w = i; b.setAttribute("aria-pressed", String(i === 0)); at.appendChild(b); });
+  seg("#avgTabs", function (b) { AV.who = +b.dataset.w; avDraw(); });
+  $("#avgFix").addEventListener("click", function () { AV.fix = !AV.fix; this.setAttribute("aria-pressed", String(AV.fix)); this.textContent = AV.fix ? "Deshacer corrección" : "Corregir notas[0, 0] = 10"; avDraw(); });
+  avDraw();
+
+  /* ---------- Slide 10: cine ---------- */
+  var SEATS = [["L", "O", "L", "L"], ["O", "O", "L", "O"], ["L", "L", "L", "O"]];
+  function cineDraw() {
+    var api = grid($("#cineHost"), { rows: 3, cols: 4, val: function (r, c) { return SEATS[r][c]; }, idx: true, rowName: "fila ", colName: "asiento ",
+      click: function (r, c) { SEATS[r][c] = SEATS[r][c] === "L" ? "O" : "L"; cineDraw(); views.cine.mark([[8, 8]]); } });
+    var libres = 0;
+    SEATS.forEach(function (row, r) { row.forEach(function (v, c) { api.cells[r][c].classList.add(v === "L" ? "free" : "occ"); api.cells[r][c].setAttribute("aria-label", "fila " + r + ", asiento " + c + ": " + (v === "L" ? "libre" : "ocupado")); if (v === "L") libres++; }); });
+    var o = $("#cineOut"); o.className = "out ok"; o.textContent = "Asientos libres: " + libres + " de 12  (verde = L, rojo = O)";
+  }
+  cineDraw();
+
+  /* ---------- Slide 11: errores ---------- */
+  var ERR = [
+    { bad: "int n = notas[2, 1];   // fila 2, columna 1", good: "int n = notas[1, 2];   // fila 1, columna 2", t: "Se quería el estudiante 1 en la evaluación 2. El primer índice es siempre la fila." },
+    { bad: "for (int f = 0; f <= notas.GetLength(0); f++)\n// IndexOutOfRangeException cuando f vale 3", good: "for (int f = 0; f < notas.GetLength(0); f++)", t: "El último índice válido es el tamaño menos uno: con <= el bucle se pasa de la tabla." },
+    { bad: "for (int c = 0; c < notas.GetLength(0); c++)\n// recorre columnas con el tamaño de las filas", good: "for (int c = 0; c < notas.GetLength(1); c++)", t: "Cada bucle debe consultar la dimensión que recorre: 0 para filas, 1 para columnas." }
+  ];
+  function showErr(i) { setSnip($("#errBad"), ERR[i].bad); setSnip($("#errGood"), ERR[i].good); $("#errNote").textContent = ERR[i].t; }
+  showErr(0); seg("#errTabs", function (b) { showErr(+b.dataset.e); });
+
+  /* ---------- Slide 12: prueba rápida ---------- */
+  seg("#quizTabs", function (b) {
+    var o = $("#quizOut"), ok = b.dataset.a === "1";
+    o.className = "out " + (ok ? "ok" : "bad");
+    o.textContent = ok ? "Correcto. Las filas válidas son 0, 1 y 2; la fila 3 no existe y C# lanza IndexOutOfRangeException en tiempo de ejecución."
+      : (b.dataset.a === "0" ? "No. C# nunca devuelve un valor por defecto al salirse de la tabla: lanza una excepción." : "No. C# no \"da la vuelta\" a la tabla: una posición fuera de rango es un error.");
+  });
+
+  /* ---------- Slide 12: tres dimensiones ---------- */
+  var D3 = { s: 0 }, ly = $("#layerTabs");
+  [0, 1].forEach(function (i) { var b = el("button", "", "Sala " + i); b.type = "button"; b.dataset.s = i; b.setAttribute("aria-pressed", String(i === 0)); ly.appendChild(b); });
+  function d3val(s, r, c) { return s * 12 + r * 4 + c + 1; }
+  function d3Draw(pick) {
+    var api = grid($("#d3Host"), { rows: 3, cols: 4, val: function (r, c) { return d3val(D3.s, r, c); }, idx: true, rowName: "fila ", colName: "col ",
+      click: function (r, c) { d3Draw([r, c]); } });
+    $("#l0").style.opacity = D3.s === 0 ? 1 : .35; $("#l1").style.opacity = D3.s === 1 ? 1 : .35;
+    var o = $("#d3Out"); o.className = "out"; o.textContent = "Tocá una celda: datos[" + D3.s + ", fila, columna].";
+    if (pick) { api.cells[pick[0]][pick[1]].classList.add("on"); o.className = "out ok"; o.textContent = "datos[" + D3.s + ", " + pick[0] + ", " + pick[1] + "] = " + d3val(D3.s, pick[0], pick[1]); }
+  }
+  seg("#layerTabs", function (b) { D3.s = +b.dataset.s; d3Draw(); });
+  d3Draw();
+
+  /* ---------- Slide 13: escalonado ---------- */
+  var JAG = { rect: { rows: [4, 4, 4], code: "int[,] t = new int[3, 4];\nint x = t[1, 2];   // un solo corchete, dos índices" },
+              jag: { rows: [2, 4, 1], code: "int[][] t = new int[3][];\nt[0] = new int[2];\nt[1] = new int[4];\nt[2] = new int[1];\nint x = t[1][2];   // un corchete por nivel" } };
+  function jagShow(k) {
+    var h = $("#jagHost"); h.innerHTML = ""; var sh = el("div", "shape");
+    JAG[k].rows.forEach(function (n, r) {
+      var row = el("div", "r"); row.appendChild(el("span", "", "fila " + r));
+      for (var c = 0; c < n; c++) { var cell = el("div", "cell mini"); cell.appendChild(el("span", "", r + "," + c)); row.appendChild(cell); }
+      sh.appendChild(row);
+    });
+    h.appendChild(sh); setSnip($("#jagCode"), JAG[k].code);
+  }
+  jagShow("rect"); seg("#jagTabs", function (b) { jagShow(b.dataset.k); });
+
+  /* ---------- Slide 16: solución mejor nota ---------- */
+  var MJ = { d: copy2(NOTAS0), i: -1, best: null, timer: null }, mjApi;
+  function mjStop() { if (MJ.timer) { clearInterval(MJ.timer); MJ.timer = null; } var b = $("#mjPlay"); b.setAttribute("aria-pressed", "false"); b.textContent = "Auto"; }
+  function mjReset(mix) {
+    mjStop(); if (mix) MJ.d = MJ.d.map(function (r) { return r.map(function () { return 1 + Math.floor(Math.random() * 10); }); }); else MJ.d = copy2(NOTAS0);
+    MJ.i = -1; MJ.best = null;
+    mjApi = grid($("#mjHost"), { rows: 3, cols: 4, val: function (r, c) { return MJ.d[r][c]; }, idx: true });
+    $("#mjLog").innerHTML = ""; $("#mjStep").disabled = false;
+    var o = $("#mjOut"); o.className = "out"; o.textContent = "Tocá Paso para empezar con mayor = notas[0, 0].";
+    views.mejor.mark([[1, 3]]);
+  }
+  function mjStepOnce() {
+    if (MJ.i >= 11) { mjStop(); return; }
+    MJ.i++; var r = Math.floor(MJ.i / 4), c = MJ.i % 4, v = MJ.d[r][c], msg, upd = false;
+    if (!MJ.best) { MJ.best = { v: v, r: r, c: c }; msg = "Inicio: mayor = " + v + " en [0, 0]"; views.mejor.mark([[1, 3]]); }
+    else if (v > MJ.best.v) { MJ.best = { v: v, r: r, c: c }; upd = true; msg = "notas[" + r + ", " + c + "] = " + v + " > mayor: se actualiza"; views.mejor.mark([[9, 9], [11, 13]]); }
+    else { msg = "notas[" + r + ", " + c + "] = " + v + " no supera a " + MJ.best.v; views.mejor.mark([[9, 9]]); }
+    $$(".cell", $("#mjHost")).forEach(function (x) { x.classList.remove("cur", "on"); });
+    for (var k = 0; k < MJ.i; k++) mjApi.cells[Math.floor(k / 4)][k % 4].classList.add("vis");
+    mjApi.cells[r][c].classList.add("cur"); mjApi.cells[MJ.best.r][MJ.best.c].classList.add("on");
+    var log = $("#mjLog"), line = el("div", upd ? "g" : "m", msg); log.appendChild(line); log.scrollTop = log.scrollHeight;
+    var o = $("#mjOut"); o.className = "out ok"; o.innerHTML = "";
+    o.appendChild(el("p", "mono", "mayor = " + MJ.best.v + "   filaMayor = " + MJ.best.r + "   columnaMayor = " + MJ.best.c));
+    if (MJ.i >= 11) { o.appendChild(el("p", "", "Mejor nota: " + MJ.best.v + " en [" + MJ.best.r + ", " + MJ.best.c + "]")); views.mejor.mark([[18, 18]]); mjStop(); $("#mjStep").disabled = true; mjApi.cells[r][c].classList.remove("cur"); mjApi.cells[r][c].classList.add("vis"); }
+  }
+  $("#mjStep").addEventListener("click", mjStepOnce);
+  $("#mjReset").addEventListener("click", function () { mjReset(false); });
+  $("#mjMix").addEventListener("click", function () { mjReset(true); });
+  $("#mjPlay").addEventListener("click", function () {
+    if (MJ.timer) { mjStop(); return; }
+    if (MJ.i >= 11) mjReset(false);
+    this.setAttribute("aria-pressed", "true"); this.textContent = "Pausa"; MJ.timer = setInterval(mjStepOnce, 650);
+  });
+  mjReset(false);
+
+  /* ---------- Navegación ---------- */
+  var slides = $$(".slide"), idx = 0, stage = $("#stage");
+  function show(i, fromHash) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, j) { s.hidden = j !== idx; });
+    var t = slides[idx].dataset.title;
+    $("#ctitle").textContent = t; $("#cnum").textContent = (idx + 1) + " / " + slides.length;
+    $("#fill").style.width = ((idx + 1) / slides.length * 100) + "%";
+    var tr = $("#track"); tr.setAttribute("aria-valuemax", slides.length); tr.setAttribute("aria-valuenow", idx + 1);
+    $("#prev").disabled = idx === 0; $("#next").disabled = idx === slides.length - 1;
+    $("#announce").textContent = "Diapositiva " + (idx + 1) + " de " + slides.length + ": " + t;
+    recStop(); mjStop(); stage.scrollTop = 0;
+    if (!fromHash) { try { history.replaceState(null, "", "#s" + (idx + 1)); } catch (e) { try { location.hash = "s" + (idx + 1); } catch (e2) {} } }
+    store("arr-slide", String(idx));
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g) show(+g.dataset.go - 1); });
+  $("#prev").addEventListener("click", function () { show(idx - 1); });
+  $("#next").addEventListener("click", function () { show(idx + 1); });
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+    else if (e.key === "Home") { e.preventDefault(); show(0); }
+    else if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
+    else if (e.key === "f" || e.key === "F") { fs(); }
+  });
+  function fs() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+  $("#fsBtn").addEventListener("click", fs);
+  $("#themeBtn").addEventListener("click", function () {
+    var r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark ? "light" : "dark"; store("arr-theme", r.dataset.theme);
+  });
+  var th = store("arr-theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th;
+
+  var m = /^#s(\d+)$/.exec(location.hash), start = m ? +m[1] - 1 : 0;
+  show(start, true);
+  window.addEventListener("hashchange", function () { var h = /^#s(\d+)$/.exec(location.hash); if (h) show(+h[1] - 1, true); });
+})();
+</script>
+</body>
+</html>

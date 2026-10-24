@@ -1,0 +1,1090 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Fundamentos de POO en C#</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,800;110,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Concepto: el "plano" (blueprint). La clase es el plano; los objetos son lo que se construye con él.
+   Papel técnico con cuadrícula, tinta azul de delineante y un lápiz ámbar para resaltar. */
+:root {
+  --bg: #f4f5fc;
+  --panel: #ffffff;
+  --fg: #15163f;
+  --muted: #4d5079;
+  --line: #d6d9ee;
+  --ink: #2a4bdc;
+  --ink-soft: #e5e9fd;
+  --accent: #c8f20d;
+  --accent-fg: #15163f;
+  --ok: #12701f;
+  --ok-soft: #e6f8d2;
+  --bad: #c0261f;
+  --bad-soft: #fbe6e4;
+  --code-bg: #15163f;
+  --code-fg: #e8eaff;
+  --code-line: #26296a;
+  --code-hl: #2d3aa3;
+  --tk-k: #94a9ff;
+  --tk-t: #b4f23a;
+  --tk-s: #ffd36e;
+  --tk-c: #9296cc;
+  --tk-n: #ff9d8a;
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+    --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+    --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+    --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+  --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+  --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+  --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+.bar {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-stretch: 110%; letter-spacing: .02em; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand b { color: var(--ink); }
+.tools { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); font-size: .85rem; font-weight: 500;
+}
+.icon-btn:hover { border-color: var(--ink); }
+
+.stage {
+  overflow-y: auto; overflow-x: hidden; min-height: 0;
+  padding-block: clamp(16px, 3vh, 36px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: clamp(16px, 1.25vw + 6px, 20px);
+}
+.slide { max-width: 1180px; margin: 0 auto; display: grid; gap: clamp(14px, 2.2vh, 26px); animation: enter .35s ease both; }
+.slide[hidden] { display: none; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } * { transition: none !important; } }
+
+.eyebrow { margin: 0; font-family: var(--font-mono); font-size: .72em; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
+h1, h2, h3 { font-family: var(--font-display); font-stretch: 105%; font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.7rem); }
+h3 { font-size: 1.15em; line-height: 1.2; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 1.1em; color: var(--muted); }
+.hl-text { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 55%, transparent) 62%); }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+p code, li code, td code { background: var(--ink-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); align-items: start; }
+.cols.wide-left { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
+@media (max-width: 860px) { .cols, .cols.wide-left { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card.key { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
+.card h3 { margin-bottom: 6px; }
+.card p { color: var(--muted); font-size: .92em; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: .68em; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--ink-soft); color: var(--ink); margin-bottom: 8px; }
+.tag.now { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* Controles */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .btn {
+  min-height: 40px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 500; font-size: .88em;
+}
+.seg button:hover, .btn:hover { border-color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.btn.small { min-height: 34px; padding: 3px 10px; font-size: .8em; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+label.field { display: grid; gap: 4px; font-size: .8em; color: var(--muted); font-weight: 500; }
+input[type="text"], input[type="number"] {
+  min-height: 40px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font: inherit; width: 100%; min-width: 0;
+}
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+
+/* Código */
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
+.code-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 6px 14px; font-family: var(--font-mono); font-size: .7em; color: var(--tk-c); border-bottom: 1px solid var(--code-line); }
+.code-head button { background: transparent; border: 1px solid var(--code-line); color: var(--code-fg); border-radius: 6px; padding: 2px 10px; font-size: 1em; min-height: 28px; }
+.code-body { overflow-x: auto; padding: 10px 0; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; }
+.ln { display: flex; white-space: pre; padding-right: 16px; }
+.ln i { flex: 0 0 2.6em; text-align: right; padding-right: 1em; color: var(--tk-c); font-style: normal; user-select: none; opacity: .7; }
+.ln.on { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent); }
+.k { color: var(--tk-k); } .t { color: var(--tk-t); } .s { color: var(--tk-s); } .c { color: var(--tk-c); font-style: italic; } .n { color: var(--tk-n); }
+pre.snip { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 12px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; border: 1px solid var(--line); }
+pre.snip.bad { box-shadow: inset 4px 0 0 var(--bad); }
+pre.snip.good { box-shadow: inset 4px 0 0 var(--ok); }
+
+.notes { display: grid; gap: 6px; }
+.note { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 12px; min-height: 40px; font-size: .88em; font-weight: 500; }
+.note[aria-pressed="true"] { border-color: var(--ink); background: var(--ink-soft); }
+.explain { background: var(--ink-soft); border-radius: 8px; padding: 10px 14px; font-size: .9em; min-height: 3.6em; }
+
+.out { border-radius: 10px; padding: 12px 14px; border: 1px solid var(--line); background: var(--panel); font-size: .92em; min-height: 4.2em; }
+.out.ok { background: var(--ok-soft); border-color: var(--ok); }
+.out.bad { background: var(--bad-soft); border-color: var(--bad); }
+.state { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--font-mono); font-size: .85em; margin-top: 6px; }
+.state b { color: var(--ink); }
+
+.log { font-family: var(--font-mono); font-size: .8em; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 10px 14px; min-height: 9em; max-height: 14em; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+.log .e { color: var(--tk-n); } .log .g { color: var(--tk-t); } .log .m { color: var(--tk-c); }
+
+table { border-collapse: collapse; width: 100%; font-size: .88em; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .75em; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.scroll-x { overflow-x: auto; }
+.yes { color: var(--ok); font-weight: 700; } .no { color: var(--bad); font-weight: 700; }
+
+/* Tarjetas de objeto */
+.obj { background: var(--panel); border: 2px solid var(--ink); border-radius: 6px; min-width: 0; }
+.obj header { background: var(--ink); color: var(--panel); padding: 6px 12px; font-family: var(--font-mono); font-size: .8em; font-weight: 700; }
+.obj .sect { padding: 8px 12px; border-top: 1px dashed var(--line); font-family: var(--font-mono); font-size: .82em; display: grid; gap: 2px; }
+.obj .sect h4 { margin: 0 0 2px; font: 500 .72em var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.obj.template { border-style: dashed; }
+.obj.template header { background: var(--accent); color: var(--accent-fg); }
+.insts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.insts .obj { animation: enter .3s ease both; }
+.priv { color: var(--bad); } .pub { color: var(--ok); }
+
+/* Composición */
+.compo { display: grid; gap: 12px; }
+.compo .children { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; padding-left: 18px; border-left: 3px solid var(--accent); margin-left: 8px; }
+
+.illus { width: 100%; height: auto; max-height: 46vh; }
+.illus text { font-family: var(--font-mono); font-size: 13px; fill: var(--fg); }
+.illus .muted { fill: var(--muted); }
+.illus .stroke { fill: none; stroke: var(--ink); stroke-width: 2; }
+.illus .dash { stroke-dasharray: 5 4; }
+.illus .wall { fill: var(--wall, var(--ink-soft)); stroke: var(--ink); stroke-width: 2; }
+.illus .door { fill: var(--accent); }
+
+/* Navegación */
+.foot {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  padding-top: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 4px solid var(--accent); background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+.progress { display: grid; gap: 4px; min-width: 0; }
+.track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--ink); transition: width .3s ease; }
+.counter { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.counter span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-btn { min-width: 48px; height: 44px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); font-weight: 600; padding: 0 16px; }
+.nav-btn.alt { background: var(--panel); color: var(--ink); }
+.nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+.agenda { display: grid; gap: 10px; counter-reset: p; }
+.agenda button { display: grid; grid-template-columns: 3.2em 1fr; gap: 6px; align-items: baseline; text-align: left; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.agenda button:hover { border-color: var(--ink); }
+.agenda .pn { font-family: var(--font-mono); color: var(--ink); font-weight: 700; font-size: .85em; }
+.agenda small { display: block; color: var(--muted); font-size: .8em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.pillar { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pillar:hover { border-color: var(--ink); }
+.pillar[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
+.pillar .tag { justify-self: start; margin: 0; }
+.detail { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 12px; min-width: 0; }
+.detail .tag { justify-self: start; margin: 0; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: 1.35em; line-height: 1.2; max-width: 40ch; }
+.stat { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 18px; display: grid; }
+.stat b { font-family: var(--font-display); font-size: 2em; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8em; color: var(--muted); }
+</style>
+
+<div class="app" id="app">
+  <div class="bar">
+    <div class="brand">POO EN C# <b>/</b> MÓDULO 4</div>
+    <div class="tools">
+      <button class="icon-btn" data-go="6" aria-label="Ir al recorrido">Recorrido</button>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+      <button class="icon-btn" id="fsBtn" aria-label="Pantalla completa">Pantalla completa</button>
+    </div>
+  </div>
+
+  <main class="stage" id="stage" tabindex="-1">
+
+    <!-- 1. Portada -->
+    <section class="slide" data-title="Portada">
+      <div class="cols" style="align-items:center">
+        <div style="display:grid;gap:16px">
+          <p class="eyebrow">Introducción a C# y .NET · Módulo 4</p>
+          <h1>Programación Orientada a <span class="hl-text">Objetos</span></h1>
+          <p class="lead">De funciones sueltas a objetos que guardan sus datos y saben qué hacer con ellos.</p>
+          <div class="row"><button class="btn primary" data-go="2">Comenzar</button><button class="btn" data-go="6">Ver el recorrido</button></div>
+        </div>
+        <svg class="illus" viewBox="0 0 560 300" role="img" aria-label="Un plano de casa etiquetado class Casa y, a su derecha, tres casas construidas con ese plano mediante la palabra new">
+          <defs>
+            <symbol id="casa" viewBox="0 0 80 80">
+              <path class="wall" d="M10 38 L40 12 L70 38 Z"/>
+              <rect class="wall" x="16" y="38" width="48" height="34"/>
+              <rect class="door" x="34" y="50" width="12" height="22"/>
+            </symbol>
+          </defs>
+          <rect x="16" y="30" width="200" height="220" rx="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 4"/>
+          <g class="stroke dash">
+            <path d="M46 150 L116 92 L186 150 Z"/>
+            <rect x="58" y="150" width="116" height="70"/>
+            <rect x="104" y="176" width="26" height="44"/>
+          </g>
+          <path class="stroke" d="M30 238 H202 M30 233 V243 M202 233 V243" />
+          <text x="116" y="22" text-anchor="middle">class Casa</text>
+          <text x="116" y="268" text-anchor="middle" class="muted">el plano: se escribe una vez</text>
+          <path class="stroke" d="M226 140 H290 M280 132 L292 140 L280 148"/>
+          <text x="258" y="128" text-anchor="middle">new</text>
+          <use href="#casa" x="300" y="30" width="110" height="110" style="--wall: var(--ink-soft)"/>
+          <use href="#casa" x="420" y="30" width="110" height="110" style="--wall: color-mix(in srgb, var(--accent) 40%, var(--panel))"/>
+          <use href="#casa" x="360" y="150" width="110" height="110" style="--wall: color-mix(in srgb, var(--ok) 30%, var(--panel))"/>
+          <text x="355" y="146" text-anchor="middle" class="muted" font-size="11">casaA</text>
+          <text x="475" y="146" text-anchor="middle" class="muted" font-size="11">casaB</text>
+          <text x="415" y="272" text-anchor="middle" class="muted" font-size="11">casaC</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2. Paradigmas -->
+    <section class="slide" data-title="Paradigmas">
+      <header><p class="eyebrow">Para empezar</p><h2>¿De cuántas formas se puede organizar un programa?</h2></header>
+      <p class="lead">Cada estilo de organizar y escribir programas se llama <b>paradigma</b>. C# permite combinar varios.</p>
+      <div class="seg" id="parTabs" role="group" aria-label="Paradigmas de programación">
+        <button aria-pressed="true" data-p="estr">Estructurada</button>
+        <button aria-pressed="false" data-p="poo">Orientada a objetos</button>
+        <button aria-pressed="false" data-p="fun">Funcional</button>
+        <button aria-pressed="false" data-p="log">Lógica</button>
+        <button aria-pressed="false" data-p="ev">Orientada a eventos</button>
+      </div>
+      <div class="detail" id="parDetail" aria-live="polite"></div>
+    </section>
+
+    <!-- 3. Estilo estructurado -->
+    <section class="slide" data-title="Estilo estructurado">
+      <header><p class="eyebrow">Punto de partida</p><h2>Estructurado: los datos por un lado, las funciones por otro</h2></header>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="row">
+            <button class="btn primary" id="stAdd">Agregar cliente</button>
+            <button class="btn" id="stDel">Quitar cliente</button>
+          </div>
+          <div class="stat">
+            <div><b id="stVars">4</b><span>variables sueltas</span></div>
+            <div><b id="stCalls">2</b><span>llamadas a mano</span></div>
+          </div>
+          <p class="explain" id="stMsg" aria-live="polite"></p>
+        </div>
+        <pre class="snip" id="stCode" aria-live="polite"></pre>
+      </div>
+    </section>
+
+    <!-- 4. Orientado a objetos -->
+    <section class="slide" data-title="Estructurado frente a objetos">
+      <header><p class="eyebrow">La otra mitad</p><h2>Orientado a objetos: datos y acciones viajan juntos</h2></header>
+      <div class="cols">
+        <article class="card">
+          <span class="tag">Estructurado</span>
+          <pre class="snip bad" style="margin-top:8px">string titularAna = "Ana";
+decimal saldoAna = 10000m;
+
+Depositar(ref saldoAna, 500m);</pre>
+          <p style="margin-top:10px">El dato y la función que lo cambia no se conocen.</p>
+        </article>
+        <article class="card key">
+          <span class="tag now">Orientado a objetos</span>
+          <pre class="snip good" style="margin-top:8px">Cuenta ana = new Cuenta("Ana", 10000m);
+
+
+
+ana.Depositar(500m);</pre>
+          <p style="margin-top:10px">El objeto guarda su estado y sabe depositar.</p>
+        </article>
+      </div>
+      <div class="grid3">
+        <div class="card"><h3>Menos variables</h3><p>Un objeto por cliente.</p></div>
+        <div class="card"><h3>Reglas en un lugar</h3><p>La clase las aplica siempre.</p></div>
+        <div class="card"><h3>Crece sin desorden</h3><p>Otro cliente es otro <code>new</code>.</p></div>
+      </div>
+    </section>
+
+    <!-- 5. Pilares -->
+    <section class="slide" data-title="Los cuatro pilares">
+      <header><p class="eyebrow">Las ideas de fondo</p><h2>La POO se apoya en cuatro pilares</h2></header>
+      <div class="pillars" id="pilTabs" role="group" aria-label="Pilares de la POO">
+        <button class="pillar" aria-pressed="true" data-k="abs"><h3>Abstracción</h3><span class="tag now">Hoy</span></button>
+        <button class="pillar" aria-pressed="false" data-k="enc"><h3>Encapsulamiento</h3><span class="tag now">Hoy</span></button>
+        <button class="pillar" aria-pressed="false" data-k="her"><h3>Herencia</h3><span class="tag">Próximo tema</span></button>
+        <button class="pillar" aria-pressed="false" data-k="pol"><h3>Polimorfismo</h3><span class="tag">Próximo tema</span></button>
+      </div>
+      <div class="detail" id="pilDetail" aria-live="polite"></div>
+    </section>
+
+    <!-- 6. Recorrido -->
+    <section class="slide" data-title="Recorrido">
+      <header><p class="eyebrow">Hoy</p><h2>Siete partes, de lo simple a lo completo</h2></header>
+      <div class="agenda cols" style="align-items:stretch">
+        <button data-go="7"><span class="pn">P1</span><span>Pensar en objetos<small>Objeto, clase e instancia</small></span></button>
+        <button data-go="10"><span class="pn">P2</span><span>Nuestra primera clase<small>Fields, métodos y new</small></span></button>
+        <button data-go="11"><span class="pn">P3</span><span>Un problema y su solución<small>Encapsulamiento y acceso</small></span></button>
+        <button data-go="13"><span class="pn">P4</span><span>Properties y validación<small>Fields frente a properties</small></span></button>
+        <button data-go="15"><span class="pn">P5</span><span>Constructores<small>Paramétrico, sobrecarga y this</small></span></button>
+        <button data-go="18"><span class="pn">P6</span><span>Exposición controlada<small>Qué se muestra y qué no</small></span></button>
+        <button data-go="19"><span class="pn">P7</span><span>Composición de objetos<small>Objetos dentro de objetos</small></span></button>
+      </div>
+    </section>
+
+    <!-- 7. Objeto -->
+    <section class="slide" data-title="¿Qué es un objeto?">
+      <header><p class="eyebrow">Parte 1 · Pensar en objetos</p><h2>Un objeto es estado más comportamiento</h2></header>
+      <div class="cols">
+        <div style="display:grid;gap:14px;align-content:start">
+          <p class="lead">Atributos para lo que <i>es</i>. Métodos para lo que <i>hace</i>.</p>
+          <div class="seg" id="objTabs" role="group" aria-label="Ejemplos de objetos">
+            <button aria-pressed="true" data-o="auto">Auto</button>
+            <button aria-pressed="false" data-o="cuenta">Cuenta bancaria</button>
+            <button aria-pressed="false" data-o="est">Estudiante</button>
+          </div>
+        </div>
+        <div class="obj" id="objCard" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- 8. Clase e instancia -->
+    <section class="slide" data-title="Clase e instancia">
+      <header><p class="eyebrow">Parte 1 · Pensar en objetos</p><h2>La clase es el plano; la instancia, lo construido</h2></header>
+      <p class="lead">Creá instancias y modificá una: las demás no cambian.</p>
+      <div class="cols" style="grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)">
+        <div class="obj template">
+          <header>class Cuenta  (plantilla)</header>
+          <div class="sect"><h4>Atributos</h4><span>titular</span><span>saldo</span></div>
+          <div class="sect"><h4>Métodos</h4><span>Depositar(monto)</span><span>Retirar(monto)</span></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <form class="row" id="instForm" autocomplete="off">
+            <label class="field" style="flex:1 1 120px">Titular<input type="text" id="instName" value="Marta" maxlength="14"></label>
+            <label class="field" style="flex:1 1 110px">Saldo inicial<input type="number" id="instSaldo" value="5000" min="0" step="500"></label>
+            <button class="btn primary" type="submit">new Cuenta(...)</button>
+          </form>
+          <pre class="snip" id="instCode" aria-live="polite">Cuenta cuentaAna = new Cuenta("Ana", 10000m);</pre>
+          <div class="insts" id="insts"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Ventajas -->
+    <section class="slide" data-title="Ventajas de la POO">
+      <header><p class="eyebrow">Parte 1 · Pensar en objetos</p><h2>Qué se gana con los objetos</h2></header>
+      <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))">
+        <article class="card"><h3>Modularidad</h3><p>Cada pieza tiene su lugar en una clase.</p></article>
+        <article class="card"><h3>Reutilización</h3><p>Una clase sirve en varios programas.</p></article>
+        <article class="card"><h3>Escalabilidad</h3><p>Se amplía sin romper lo que funciona.</p></article>
+        <article class="card"><h3>Mantenimiento</h3><p>Cada clase responde por sus datos.</p></article>
+      </div>
+    </section>
+
+    <!-- 10. Primera clase -->
+    <section class="slide" data-title="Nuestra primera clase">
+      <header><p class="eyebrow">Parte 2 · Nuestra primera clase</p><h2>Definir una clase en C#</h2></header>
+      <p class="lead">Tocá cada nota para ver qué líneas la forman.</p>
+      <div class="codeview" data-code="basica"></div>
+    </section>
+
+    <!-- 11. Problema -->
+    <section class="slide" data-title="El problema del acceso libre">
+      <header><p class="eyebrow">Parte 3 · Un problema y su solución</p><h2>Si cualquiera escribe el saldo, nadie lo protege</h2></header>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="seg" id="protTabs" role="group" aria-label="Versión de la clase">
+            <button aria-pressed="true" data-m="basic">Field público</button>
+            <button aria-pressed="false" data-m="prot">Con encapsulamiento</button>
+          </div>
+          <pre class="snip bad" id="protCode"></pre>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <form class="row" id="protForm" autocomplete="off">
+            <label class="field" style="flex:1 1 140px">Valor a asignar<input type="number" id="protVal" value="-5000" step="500"></label>
+            <button class="btn primary" type="submit">cuenta.Saldo = valor;</button>
+          </form>
+          <div class="out" id="protOut" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. Encapsulamiento y modificadores -->
+    <section class="slide" data-title="Encapsulamiento y modificadores">
+      <header><p class="eyebrow">Parte 3 · Un problema y su solución</p><h2>Encapsulamiento: ocultar los datos, exponer lo necesario</h2></header>
+      <div class="cols">
+        <div style="display:grid;gap:12px;align-content:start">
+          <ul class="clean">
+            <li>Las reglas viven en <b>un solo lugar</b>.</li>
+            <li>Solo la clase decide cómo cambia su estado.</li>
+          </ul>
+          <p class="lead">Modificador de acceso: elegí uno.</p>
+          <div class="seg" id="accTabs" role="group" aria-label="Modificador de acceso">
+            <button aria-pressed="true" data-a="public">public</button>
+            <button aria-pressed="false" data-a="private">private</button>
+            <button aria-pressed="false" data-a="protected">protected</button>
+            <button aria-pressed="false" data-a="internal">internal</button>
+          </div>
+        </div>
+        <div style="display:grid;gap:10px;min-width:0">
+          <div class="scroll-x"><table aria-live="polite">
+            <thead><tr><th>Quién intenta acceder</th><th>¿Puede?</th></tr></thead>
+            <tbody id="accBody"></tbody>
+          </table></div>
+          <p class="explain" id="accNote"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. Fields vs properties -->
+    <section class="slide" data-title="Fields y properties">
+      <header><p class="eyebrow">Parte 4 · Properties y validación</p><h2>El field guarda el dato; la property lo controla</h2></header>
+      <div class="cols">
+        <article class="card">
+          <span class="tag">Field</span>
+          <p>Solo almacena. No puede validar.</p>
+          <pre class="snip bad" style="margin-top:10px">public decimal Saldo;   // sin control</pre>
+        </article>
+        <article class="card key">
+          <span class="tag now">Property</span>
+          <p>Controla cómo se lee y se escribe.</p>
+          <pre class="snip good" style="margin-top:10px">public decimal Saldo { get; private set; }
+// auto-implementada: el compilador crea el field</pre>
+        </article>
+      </div>
+      <p class="explain">Regla práctica: <b>fields privados</b> (<code>_saldo</code>) y <b>properties públicas</b> (<code>Saldo</code>).</p>
+    </section>
+
+    <!-- 14. Validación -->
+    <section class="slide" data-title="Validación en propiedades">
+      <header><p class="eyebrow">Parte 4 · Properties y validación</p><h2>El bloque set decide qué valores se aceptan</h2></header>
+      <div class="cols">
+        <div class="codeview" data-code="prop"></div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <form class="row" id="valForm" autocomplete="off">
+            <label class="field" style="flex:1 1 140px">Valor para Saldo<input type="number" id="valVal" value="-500" step="100"></label>
+            <button class="btn primary" type="submit">cuenta.Saldo = valor;</button>
+          </form>
+          <div class="out" id="valOut" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. Constructores -->
+    <section class="slide" data-title="Constructores">
+      <header><p class="eyebrow">Parte 5 · Constructores</p><h2>El constructor deja al objeto listo desde el primer instante</h2></header>
+      <div class="cols">
+        <ul class="clean" style="align-content:start">
+          <li>Se ejecuta solo con <code>new</code>.</li>
+          <li>Mismo nombre que la clase, <b>sin tipo de retorno</b>.</li>
+          <li>El <b>paramétrico</b> exige los datos esenciales.</li>
+        </ul>
+        <div class="codeview" data-code="ctor"></div>
+      </div>
+    </section>
+
+    <!-- 16. Sobrecarga -->
+    <section class="slide" data-title="Sobrecarga de constructores">
+      <header><p class="eyebrow">Parte 5 · Constructores</p><h2>Sobrecarga: varios constructores, C# elige uno</h2></header>
+      <p class="lead">Elegí una llamada y seguí el recorrido.</p>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="seg" id="ovTabs" role="group" aria-label="Llamada a new">
+            <button aria-pressed="true" data-v="0">new Cuenta()</button>
+            <button aria-pressed="false" data-v="1">new Cuenta("Carla")</button>
+            <button aria-pressed="false" data-v="2">new Cuenta("Diego", 8000m)</button>
+          </div>
+          <ol class="clean" id="ovSteps" style="padding-left:1.4em" aria-live="polite"></ol>
+          <div class="out" id="ovOut"></div>
+        </div>
+        <div class="codeview" data-code="over"></div>
+      </div>
+    </section>
+
+    <!-- 17. this -->
+    <section class="slide" data-title="La palabra this">
+      <header><p class="eyebrow">Parte 5 · Constructores</p><h2><code style="font-size:.9em">this</code> es el objeto que ejecuta el código</h2></header>
+      <div class="cols">
+        <div class="card" style="align-self:start"><h3>Dos variables, un solo objeto</h3>
+          <pre class="snip" style="margin-top:8px">Cuenta a = new Cuenta("Diego", 8000m);
+Cuenta b = a;                // mismo objeto
+a.EsLaMismaCuenta(b);        // true
+a.EsLaMismaCuenta(
+    new Cuenta("Diego", 8000m)); // false</pre></div>
+        <div class="codeview" data-code="this"></div>
+      </div>
+    </section>
+
+    <!-- 18. Exposición controlada -->
+    <section class="slide" data-title="Exposición controlada">
+      <header><p class="eyebrow">Parte 6 · Exposición controlada</p><h2>Se lee desde afuera; se modifica solo con métodos</h2></header>
+      <div class="cols">
+        <div class="codeview" data-code="expo"></div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="state" style="font-size:1em;margin:0">Saldo actual: <b id="expoSaldo">8500</b></div>
+          <div class="row">
+            <button class="btn small" data-x="dep">Depositar(2000)</button>
+            <button class="btn small" data-x="ret1">Retirar(1500)</button>
+            <button class="btn small" data-x="ret2">Retirar(50000)</button>
+            <button class="btn small" data-x="set">cuenta.Saldo = 999999m;</button>
+          </div>
+          <div class="log" id="expoLog" aria-live="polite"><span class="m">// Probá las operaciones</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19. Composición -->
+    <section class="slide" data-title="Composición de objetos">
+      <header><p class="eyebrow">Parte 7 · Composición de objetos</p><h2>Un objeto puede estar formado por otros objetos</h2></header>
+      <p class="lead">Relación "tiene un": un <code>Cliente</code> tiene una <code>Direccion</code> y varias <code>Cuenta</code>.</p>
+      <div class="cols">
+        <div class="compo">
+          <div class="obj">
+            <header>Cliente</header>
+            <div class="sect"><span>Nombre = "Elena"</span></div>
+          </div>
+          <div class="children">
+            <div class="obj"><header>Direccion</header><div class="sect"><span>Calle = "Av. Siempre Viva 742"</span><span>Ciudad = "Springfield"</span></div></div>
+          </div>
+          <div class="children" id="compoCuentas"></div>
+          <div class="row">
+            <button class="btn primary" id="compoAdd">AbrirCuenta(5000m)</button>
+            <button class="btn" id="compoReset">Reiniciar</button>
+          </div>
+          <div class="out" aria-live="polite" id="compoOut"></div>
+        </div>
+        <pre class="snip">class Cliente
+{
+    public string Nombre { get; private set; }
+    public Direccion Domicilio { get; private set; }
+    private List&lt;Cuenta&gt; _cuentas = new List&lt;Cuenta&gt;();
+
+    public Cuenta AbrirCuenta(decimal saldoInicial)
+    {
+        Cuenta nueva = new Cuenta(Nombre, saldoInicial);
+        _cuentas.Add(nueva);
+        return nueva;
+    }
+
+    public decimal SaldoTotal()
+    {
+        decimal total = 0m;
+        foreach (Cuenta c in _cuentas)
+            total += c.Saldo;
+        return total;
+    }
+}</pre>
+      </div>
+    </section>
+
+    <!-- 20. Resumen -->
+    <section class="slide" data-title="Resumen">
+      <header><p class="eyebrow">Cierre</p><h2>Lo que hay que llevarse</h2></header>
+      <div class="grid3">
+        <article class="card"><h3>Objeto y clase</h3><p>La clase es el plano; <code>new</code> crea instancias.</p></article>
+        <article class="card"><h3>Fields y properties</h3><p>Los fields guardan; las properties controlan.</p></article>
+        <article class="card"><h3>Encapsulamiento</h3><p>Datos privados, acceso por métodos.</p></article>
+        <article class="card"><h3>Constructores</h3><p>El objeto nace en un estado válido.</p></article>
+        <article class="card"><h3><code>this</code></h3><p>La instancia que ejecuta el código.</p></article>
+        <article class="card"><h3>Composición</h3><p>Objetos que contienen objetos.</p></article>
+      </div>
+    </section>
+
+    <!-- 21. Práctica -->
+    <section class="slide" data-title="Para practicar">
+      <header><p class="eyebrow">Práctica</p><h2>Ahora te toca: modelá un <span class="hl-text">Producto</span></h2></header>
+      <div class="cols">
+        <ul class="clean" style="list-style:none;padding:0" id="todo">
+          <li><label><input type="checkbox"> Clase <code>Producto</code>: <code>Nombre</code>, <code>Precio</code>, <code>Stock</code>.</label></li>
+          <li><label><input type="checkbox"> Fields privados y properties.</label></li>
+          <li><label><input type="checkbox"> Validá precio y stock no negativos.</label></li>
+          <li><label><input type="checkbox"> Constructor paramétrico y otro con solo el nombre.</label></li>
+          <li><label><input type="checkbox"> <code>Vender(cantidad)</code>: <code>false</code> si no hay stock.</label></li>
+          <li><label><input type="checkbox"> Clase <code>Proveedor</code> dentro de <code>Producto</code>.</label></li>
+        </ul>
+        <div class="card"><h3>Para comprobar</h3><p>Creá tres productos y vendé unidades de uno: los otros dos conservan su stock.</p><button class="btn primary" data-go="22" style="margin-top:12px">Ver la solución</button></div>
+      </div>
+    </section>
+
+    <!-- 22. Solución -->
+    <section class="slide" data-title="Solución: Producto">
+      <header><p class="eyebrow">Práctica · Solución</p><h2>Producto resuelto</h2></header>
+      <div class="cols">
+        <div class="codeview" data-code="producto"></div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <form class="row" id="prForm" autocomplete="off">
+            <label class="field" style="flex:2 1 120px">Nombre<input type="text" id="prName" value="Parlante" maxlength="16"></label>
+            <label class="field" style="flex:1 1 90px">Precio<input type="number" id="prPrice" value="12000" step="500"></label>
+            <label class="field" style="flex:1 1 70px">Stock<input type="number" id="prStock" value="6" step="1"></label>
+            <button class="btn primary" type="submit">new Producto(...)</button>
+          </form>
+          <div class="insts" id="prList"></div>
+          <div class="log" id="prLog" aria-live="polite"><span class="m">// Vendé, cambiá precios o asigná un proveedor</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="foot" aria-label="Navegación de la presentación">
+    <button class="nav-btn alt" id="prev" aria-label="Diapositiva anterior">&larr; Anterior</button>
+    <div class="progress">
+      <div class="track" role="progressbar" aria-label="Progreso" aria-valuemin="1" id="track"><div class="fill" id="fill"></div></div>
+      <div class="counter"><span id="ctitle"></span><span id="cnum"></span></div>
+    </div>
+    <button class="nav-btn" id="next" aria-label="Diapositiva siguiente">Siguiente &rarr;</button>
+  </nav>
+</div>
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var fmt = function (n) { return Number(n).toLocaleString("es-AR"); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
+
+  /* ---------- Resaltado de sintaxis C# ---------- */
+  var KW = new Set("class public private protected internal static void return new if else foreach in this get set value throw string decimal int bool true false var ref".split(" "));
+  var TY = new Set("Cuenta CuentaBasica Cliente Direccion Producto Proveedor List ArgumentException ReferenceEquals".split(" "));
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function hl(line) {
+    var re = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d+(?:\.\d+)?m?\b)|(\b[A-Za-z_]\w*\b)/g, out = "", last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      var t = m[0], cls = "";
+      if (m[1]) cls = "c"; else if (m[2]) cls = "s"; else if (m[3]) cls = "n";
+      else if (KW.has(t)) cls = "k"; else if (TY.has(t)) cls = "t";
+      out += cls ? '<span class="' + cls + '">' + esc(t) + "</span>" : esc(t);
+      last = re.lastIndex;
+    }
+    return out + esc(line.slice(last));
+  }
+  function setSnip(pre, text) { pre.innerHTML = text.split("\n").map(hl).join("\n"); }
+  $$("pre.snip").forEach(function (p) { if (p.textContent.trim()) setSnip(p, p.textContent); });
+
+  /* ---------- Visor de código con notas ---------- */
+  var CODE = {
+    basica: { file: "CuentaBasica.cs", src: [
+      "class CuentaBasica", "{", "    public string Titular = \"\";", "    public decimal Saldo;", "",
+      "    public void Depositar(decimal monto)", "    {", "        Saldo += monto;", "    }", "}", "",
+      "CuentaBasica cuentaAna = new CuentaBasica();", "cuentaAna.Titular = \"Ana\";", "cuentaAna.Saldo = 10000m;", "cuentaAna.Depositar(2500m);   // Saldo: 12500"],
+      notes: [
+        ["La clase", [1, 10], "Todo lo que va entre las llaves son los miembros de la clase: la plantilla de las cuentas."],
+        ["Fields (atributos)", [3, 4], "Variables declaradas dentro de la clase. Guardan el estado de cada objeto. Aquí son public a propósito: más adelante veremos por qué es un problema."],
+        ["Método", [6, 9], "Una función dentro de la clase. Define un comportamiento y trabaja sobre los datos de ESTA cuenta."],
+        ["Crear una instancia", [12, 12], "new construye un objeto a partir de la clase. Declarar la variable sola no crea nada."],
+        ["Usar el objeto", [13, 15], "Se accede a los miembros con un punto, siempre sobre una instancia, no sobre la clase."]] },
+    prop: { file: "Property con validación", src: [
+      "private decimal _saldo;", "", "public decimal Saldo", "{", "    get { return _saldo; }", "    set", "    {",
+      "        if (value < 0)", "            throw new ArgumentException(\"El saldo no puede ser negativo.\");", "        _saldo = value;", "    }", "}"],
+      notes: [
+        ["Field privado", [1, 1], "Guarda el dato de verdad. Nadie fuera de la clase puede tocarlo."],
+        ["get", [5, 5], "Se ejecuta al leer la property. Devuelve el valor del field."],
+        ["set y value", [6, 11], "Se ejecuta al asignar. La palabra value es el valor que se intenta guardar."],
+        ["Validación", [8, 9], "Si el valor no es válido, se rechaza con una excepción y el field no cambia."]] },
+    ctor: { file: "Cuenta.cs", src: [
+      "class Cuenta", "{", "    public string Titular { get; private set; }", "    public decimal Saldo { get; private set; }", "",
+      "    public Cuenta(string titular, decimal saldoInicial)", "    {", "        this.Titular = titular;", "        this.Saldo = saldoInicial;", "    }", "}", "",
+      "Cuenta c = new Cuenta(\"Diego\", 8000m);"],
+      notes: [
+        ["Nombre de la clase, sin retorno", [6, 6], "El constructor se llama igual que la clase y no lleva tipo de retorno, ni siquiera void."],
+        ["Parámetros", [6, 6], "Son los datos esenciales: sin ellos no se puede crear la cuenta."],
+        ["Inicializa el estado", [8, 9], "Asigna los datos recibidos a las properties del objeto."],
+        ["Se ejecuta con new", [13, 13], "Los argumentos de new viajan al constructor y el objeto nace ya válido. Si no escribís ninguno, C# genera uno sin parámetros; si escribís uno con parámetros, ese deja de generarse."]] },
+    over: { file: "Constructores sobrecargados", src: [
+      "public Cuenta() : this(\"Sin titular\", 0m) { }", "public Cuenta(string titular) : this(titular, 0m) { }", "public Cuenta(string titular, decimal saldoInicial)", "{",
+      "    this.Titular = titular;", "    this.Saldo = saldoInicial;", "}"], notes: [] },
+    "this": { file: "Usos de this", src: [
+      "public Cuenta(string titular, decimal saldoInicial)", "{", "    this.Titular = titular;", "    this.Saldo = saldoInicial;", "}", "",
+      "public bool EsLaMismaCuenta(Cuenta otra)", "{", "    return ReferenceEquals(this, otra);", "}", "", "public Cuenta() : this(\"Sin titular\", 0m) { }"],
+      notes: [
+        ["this.Propiedad", [3, 4], "Deja claro que se asigna a la propia instancia. Es obligatorio cuando el parámetro y el miembro tienen el mismo nombre."],
+        ["this como objeto", [7, 10], "Representa la cuenta sobre la que se llamó el método. Se compara con la que llega como argumento."],
+        ["this(...) en constructores", [12, 12], "Delega en otro constructor de la misma clase para no repetir código."]] },
+    producto: { file: "Producto.cs (solución)", src: [
+      "class Producto", "{", "    private string _nombre = \"\";", "    private decimal _precio;", "    private int _stock;", "    // Nombre sigue el mismo patrón que Precio", "",
+      "    public decimal Precio", "    {", "        get { return _precio; }", "        set", "        {", "            if (value < 0)", "                throw new ArgumentException(\"El precio no puede ser negativo.\");", "            _precio = value;", "        }", "    }", "",
+      "    public int Stock { get; private set; }", "    public Proveedor Proveedor { get; set; }", "",
+      "    public Producto(string nombre, decimal precio, int stock)", "    {", "        this.Nombre = nombre;", "        this.Precio = precio;", "        this.Stock = stock;", "    }", "",
+      "    public Producto(string nombre) : this(nombre, 0m, 0) { }", "",
+      "    public bool Vender(int cantidad)", "    {", "        if (cantidad <= 0 || cantidad > Stock)", "            return false;", "        Stock -= cantidad;", "        return true;", "    }", "}"],
+      notes: [
+        ["Fields privados", [3, 5], "El estado queda oculto. Solo la propia clase puede tocar estos datos."],
+        ["Property con validación", [8, 17], "Precio rechaza valores negativos. Nombre y Stock siguen el mismo patrón en la solución completa."],
+        ["Exposición controlada", [19, 19], "Stock se lee desde afuera pero solo cambia con Vender() y Reponer(): el set es privado."],
+        ["Composición", [20, 20], "Un Producto tiene un Proveedor. Es una relación \"tiene un\"; puede no estar asignado todavía."],
+        ["Constructor paramétrico", [22, 27], "Asigna a las properties, no a los fields, para que la validación también se aplique al construir."],
+        ["Sobrecarga con this", [29, 29], "El constructor con solo el nombre delega en el paramétrico con precio y stock en cero."],
+        ["Vender", [31, 37], "Devuelve false si la cantidad no es válida o no alcanza el stock. Quedarse sin stock es una situación normal, no un error."]] },
+    expo: { file: "Exposición controlada", src: [
+      "public decimal Saldo { get; private set; }", "", "public bool Retirar(decimal monto)", "{", "    if (monto <= 0 || monto > Saldo)", "        return false;", "    Saldo -= monto;", "    return true;", "}"],
+      notes: [] }
+  };
+  var views = {};
+  function renderCode(host) {
+    var d = CODE[host.dataset.code]; if (!d) return;
+    var box = el("div", "code"), head = el("div", "code-head"), body = el("div", "code-body");
+    head.appendChild(el("span", "", d.file));
+    var cp = el("button", "", "Copiar"); cp.type = "button"; cp.setAttribute("aria-label", "Copiar el código");
+    cp.addEventListener("click", function () {
+      var txt = d.src.join("\n");
+      function done(ok) { cp.textContent = ok ? "Copiado" : "Seleccioná y copiá"; setTimeout(function () { cp.textContent = "Copiar"; }, 1500); }
+      try { navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+    });
+    head.appendChild(cp); box.appendChild(head);
+    var lines = d.src.map(function (l, i) {
+      var r = el("div", "ln"), n = el("i", "", String(i + 1)); n.setAttribute("aria-hidden", "true");
+      var c = el("span"); c.innerHTML = hl(l) || " "; r.appendChild(n); r.appendChild(c); body.appendChild(r); return r;
+    });
+    box.appendChild(body);
+    var wrap = el("div"); wrap.style.cssText = "display:grid;gap:10px;min-width:0"; wrap.appendChild(box);
+    var api = { mark: function (ranges) { lines.forEach(function (r, i) { var on = ranges.some(function (g) { return i + 1 >= g[0] && i + 1 <= g[1]; }); r.classList.toggle("on", on); }); } };
+    if (d.notes.length) {
+      var list = el("div", "notes"), ex = el("div", "explain"); ex.setAttribute("aria-live", "polite");
+      var btns = d.notes.map(function (n, i) {
+        var b = el("button", "note", n[0]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { select(i); }); list.appendChild(b); return b;
+      });
+      var select = function (i) { btns.forEach(function (b, j) { b.setAttribute("aria-pressed", String(i === j)); }); api.mark([d.notes[i][1]]); ex.textContent = d.notes[i][2]; };
+      wrap.appendChild(list); wrap.appendChild(ex); select(0);
+    }
+    host.appendChild(wrap); views[host.dataset.code] = api;
+  }
+  $$(".codeview").forEach(renderCode);
+
+  /* ---------- Segmentados ---------- */
+  function seg(id, cb) {
+    var g = $(id); if (!g) return;
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      $$("button", g).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      cb(b);
+    });
+  }
+
+  /* ---------- Paradigmas ---------- */
+  var PAR = {
+    estr: ["Lo que usamos hasta ahora", "Divide el programa en funciones y procedimientos.", "Los datos y las funciones viven por separado."],
+    poo: ["Lo que empezamos hoy", "Divide el programa en objetos que reúnen datos y comportamiento.", "Los objetos colaboran entre sí."],
+    fun: ["Otro estilo", "Se apoya en funciones puras y evita el estado que cambia.", "En C# se nota en LINQ."],
+    log: ["Otro estilo", "Se basa en reglas y hechos; ejecutar es inferir.", "Lenguaje típico: Prolog."],
+    ev: ["Otro estilo", "El código responde a eventos, como el clic de una persona usuaria.", "Muy presente en las interfaces gráficas."]
+  };
+  function showPar(k) {
+    var d = $("#parDetail"), p = PAR[k]; d.innerHTML = "";
+    d.appendChild(el("span", "tag" + (k === "poo" ? " now" : ""), p[0]));
+    d.appendChild(el("p", "big", p[1])); d.appendChild(el("p", "", p[2]));
+    d.lastChild.style.color = "var(--muted)";
+  }
+  showPar("estr"); seg("#parTabs", function (b) { showPar(b.dataset.p); });
+
+  /* ---------- Estilo estructurado: crece el desorden ---------- */
+  var CL = [["Ana", 10000], ["Luis", 3000], ["Marta", 5000], ["Diego", 8000]], stN = 2;
+  function renderSt() {
+    var L = [], i, c;
+    for (i = 0; i < stN; i++) { c = CL[i]; L.push("string titular" + c[0] + " = \"" + c[0] + "\";"); L.push("decimal saldo" + c[0] + " = " + c[1] + "m;"); }
+    L.push("", "void Depositar(ref decimal saldo, decimal monto)", "{ saldo += monto; }", "");
+    for (i = 0; i < stN; i++) L.push("Depositar(ref saldo" + CL[i][0] + ", 500m);");
+    setSnip($("#stCode"), L.join("\n"));
+    $("#stVars").textContent = stN * 2; $("#stCalls").textContent = stN;
+    $("#stMsg").textContent = stN >= 3 ? "Cada cliente nuevo suma variables que hay que recordar y pasar a mano." : "Con pocos clientes todavía se maneja. Agregá más.";
+    $("#stAdd").disabled = stN >= 4; $("#stDel").disabled = stN <= 1;
+  }
+  renderSt();
+  $("#stAdd").addEventListener("click", function () { if (stN < 4) { stN++; renderSt(); } });
+  $("#stDel").addEventListener("click", function () { if (stN > 1) { stN--; renderSt(); } });
+
+  /* ---------- Pilares ---------- */
+  var PIL = {
+    abs: ["Abstracción", "Hoy", "Mostrar solo lo esencial de algo.", "Un auto: sabés usar el volante y los pedales, no cómo funciona el motor.", "cuenta.Retirar(200m);   // no importa cómo se calcula"],
+    enc: ["Encapsulamiento", "Hoy", "Ocultar los datos y exponer solo lo necesario.", "El cajero automático: pedís operaciones, no tocás la caja fuerte.", "public decimal Saldo { get; private set; }"],
+    her: ["Herencia", "Próximo tema", "Una clase reutiliza y extiende a otra.", "Una caja de ahorro es un tipo de cuenta.", "class CajaDeAhorro : Cuenta { }"],
+    pol: ["Polimorfismo", "Próximo tema", "Un mismo mensaje, comportamientos distintos.", "Pedir el interés a cada tipo de cuenta: cada una lo calcula a su manera.", "cuenta.CalcularInteres();"]
+  };
+  function showPil(k) {
+    var d = $("#pilDetail"), p = PIL[k]; d.innerHTML = "";
+    d.appendChild(el("p", "big", p[2])); var a = el("p", "", p[3]); a.style.color = "var(--muted)"; d.appendChild(a);
+    var pre = el("pre", "snip"); setSnip(pre, p[4]); d.appendChild(pre);
+  }
+  showPil("abs");
+  $("#pilTabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    $$("button", $("#pilTabs")).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    showPil(b.dataset.k);
+  });
+
+  /* ---------- Slide 4: objetos cotidianos ---------- */
+  var OBJ = {
+    auto: { n: "Auto", a: ["marca = \"Toyota\"", "color = \"rojo\"", "velocidad = 0"], m: ["Acelerar()", "Frenar()", "TocarBocina()"] },
+    cuenta: { n: "Cuenta", a: ["titular = \"Ana\"", "saldo = 12500", "moneda = \"ARS\""], m: ["Depositar(monto)", "Retirar(monto)", "ConsultarSaldo()"] },
+    est: { n: "Estudiante", a: ["nombre = \"Lucía\"", "legajo = 4021", "promedio = 8.4"], m: ["Inscribirse(curso)", "RendirExamen()", "ObtenerPromedio()"] }
+  };
+  function showObj(k) {
+    var o = OBJ[k], c = $("#objCard"); c.innerHTML = "";
+    c.appendChild(el("header", "", o.n));
+    var s1 = el("div", "sect"); s1.appendChild(el("h4", "", "Atributos · estado")); o.a.forEach(function (t) { s1.appendChild(el("span", "", t)); });
+    var s2 = el("div", "sect"); s2.appendChild(el("h4", "", "Métodos · comportamiento")); o.m.forEach(function (t) { s2.appendChild(el("span", "", t)); });
+    c.appendChild(s1); c.appendChild(s2);
+  }
+  showObj("auto"); seg("#objTabs", function (b) { showObj(b.dataset.o); });
+
+  /* ---------- Slide 5: instancias ---------- */
+  var inst = [{ n: "Ana", s: 10000 }, { n: "Luis", s: 3000 }];
+  function renderInst() {
+    var host = $("#insts"); host.innerHTML = "";
+    inst.forEach(function (o, i) {
+      var c = el("div", "obj"); c.appendChild(el("header", "", "cuenta" + o.n));
+      var s = el("div", "sect"); s.appendChild(el("span", "", "titular = \"" + o.n + "\"")); s.appendChild(el("span", "", "saldo = " + fmt(o.s)));
+      var b = el("div", "sect"); b.style.gridAutoFlow = "column"; b.style.gap = "6px";
+      [["Depositar(1000)", 1000], ["Retirar(1000)", -1000]].forEach(function (p) {
+        var bt = el("button", "btn small", p[0]); bt.type = "button"; bt.dataset.i = i; bt.dataset.d = p[1]; b.appendChild(bt);
+      });
+      c.appendChild(s); c.appendChild(b); host.appendChild(c);
+    });
+  }
+  renderInst();
+  $("#insts").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var o = inst[+b.dataset.i], d = +b.dataset.d;
+    if (o.s + d >= 0) o.s += d;
+    $("#instCode").textContent = ""; setSnip($("#instCode"), "cuenta" + o.n + "." + (d > 0 ? "Depositar(1000m)" : "Retirar(1000m)") + ";   // solo cambia cuenta" + o.n);
+    renderInst();
+  });
+  $("#instForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var n = $("#instName").value.trim().replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ]/g, "") || "Nueva", s = Math.max(0, +$("#instSaldo").value || 0);
+    if (inst.length >= 6) inst.shift();
+    inst.push({ n: n, s: s });
+    setSnip($("#instCode"), "Cuenta cuenta" + n + " = new Cuenta(\"" + n + "\", " + s + "m);");
+    renderInst();
+  });
+
+  /* ---------- Slide 8: el problema ---------- */
+  var P = { mode: "basic", saldo: 3000 };
+  var PC = {
+    basic: "class CuentaBasica\n{\n    public decimal Saldo;   // cualquiera escribe\n}",
+    prot: "class Cuenta\n{\n    private decimal _saldo;\n    public decimal Saldo\n    {\n        get { return _saldo; }\n        set\n        {\n            if (value < 0)\n                throw new ArgumentException(\"El saldo no puede ser negativo.\");\n            _saldo = value;\n        }\n    }\n}"
+  };
+  function protReset() {
+    P.saldo = 3000; var pre = $("#protCode"); setSnip(pre, PC[P.mode]); pre.className = "snip " + (P.mode === "basic" ? "bad" : "good");
+    var o = $("#protOut"); o.className = "out"; o.textContent = ""; o.appendChild(el("span", "", "Saldo actual: ")); o.appendChild(el("b", "", fmt(P.saldo)));
+  }
+  protReset(); seg("#protTabs", function (b) { P.mode = b.dataset.m; protReset(); });
+  $("#protForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = +$("#protVal").value, o = $("#protOut"); o.innerHTML = "";
+    var msg = el("p"), st = el("p", "mono");
+    if (P.mode === "basic") {
+      P.saldo = v; o.className = "out " + (v < 0 ? "bad" : "ok");
+      msg.textContent = v < 0 ? "El compilador lo acepta. La cuenta quedó con un saldo que no tiene sentido y la clase no pudo evitarlo." : "Asignación aceptada.";
+    } else if (v < 0) {
+      o.className = "out bad"; msg.textContent = "ArgumentException: El saldo no puede ser negativo. El valor fue rechazado.";
+    } else { P.saldo = v; o.className = "out ok"; msg.textContent = "Valor válido: asignación aceptada."; }
+    st.textContent = "Saldo actual: " + fmt(P.saldo); o.appendChild(msg); o.appendChild(st);
+  });
+
+  /* ---------- Slide 9: modificadores ---------- */
+  var ACC = {
+    "public": { v: [1, 1, 1, 1], t: "Accesible desde cualquier parte." },
+    "private": { v: [1, 0, 0, 0], t: "Solo dentro de la propia clase. Es el valor por defecto de los miembros." },
+    "protected": { v: [1, 1, 0, 0], t: "La clase y sus clases derivadas, incluso en otro proyecto. Se verá con herencia." },
+    "internal": { v: [1, 0, 1, 0], t: "Cualquier código del mismo proyecto (ensamblado)." }
+  };
+  var ACCROWS = ["Dentro de la misma clase", "Clase derivada en otro proyecto", "Otra clase del mismo proyecto", "Otra clase de otro proyecto"];
+  function showAcc(k) {
+    var b = $("#accBody"); b.innerHTML = "";
+    ACC[k].v.forEach(function (y, i) {
+      var tr = el("tr"), a = el("td", "", ACCROWS[i]), c = el("td", y ? "yes" : "no", y ? "Sí" : "No");
+      tr.appendChild(a); tr.appendChild(c); b.appendChild(tr);
+    });
+    $("#accNote").textContent = ACC[k].t;
+  }
+  showAcc("public"); seg("#accTabs", function (b) { showAcc(b.dataset.a); });
+
+  /* ---------- Slide 11: validación ---------- */
+  var V = { saldo: 0 };
+  function valShow(cls, msg) {
+    var o = $("#valOut"); o.className = "out " + cls; o.innerHTML = "";
+    o.appendChild(el("p", "", msg)); o.appendChild(el("p", "mono", "_saldo = " + fmt(V.saldo)));
+  }
+  valShow("", "Todavía no se asignó ningún valor.");
+  $("#valForm").addEventListener("submit", function (e) {
+    e.preventDefault(); var v = +$("#valVal").value, api = views.prop;
+    if (v < 0) { api.mark([[8, 9]]); valShow("bad", "Rechazado: ArgumentException. El saldo no puede ser negativo."); }
+    else { V.saldo = v; api.mark([[10, 10]]); valShow("ok", "Aceptado: se ejecutó _saldo = value."); }
+  });
+
+  /* ---------- Slide 13: sobrecarga ---------- */
+  var OV = [
+    { r: [[1, 1], [3, 7]], s: ["Se elige Cuenta(): no hay argumentos.", "Delega con this(\"Sin titular\", 0m).", "Corre el constructor paramétrico.", "Asigna Titular y Saldo."], t: "Sin titular", b: 0 },
+    { r: [[2, 2], [3, 7]], s: ["Se elige Cuenta(string): un argumento de texto.", "Delega con this(titular, 0m).", "Corre el constructor paramétrico.", "Asigna Titular y Saldo."], t: "Carla", b: 0 },
+    { r: [[3, 7]], s: ["Se elige Cuenta(string, decimal): dos argumentos.", "Corre directamente el constructor paramétrico.", "Asigna Titular y Saldo."], t: "Diego", b: 8000 }
+  ];
+  function showOv(i) {
+    var d = OV[i], ol = $("#ovSteps"); ol.innerHTML = ""; d.s.forEach(function (t) { ol.appendChild(el("li", "", t)); });
+    var o = $("#ovOut"); o.className = "out ok"; o.innerHTML = ""; o.appendChild(el("p", "", "Resultado")); o.appendChild(el("p", "mono", "Titular = \"" + d.t + "\"   Saldo = " + fmt(d.b)));
+    views.over.mark(d.r);
+  }
+  showOv(0); seg("#ovTabs", function (b) { showOv(+b.dataset.v); });
+
+  /* ---------- Slide 15: exposición ---------- */
+  var X = { s: 8500 };
+  function log(cls, t) { var l = $("#expoLog"), d = el("div", cls, t); l.appendChild(d); l.scrollTop = l.scrollHeight; }
+  $$("[data-x]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.dataset.x;
+      if (k === "set") { views.expo.mark([[1, 1]]); log("e", "cuenta.Saldo = 999999m;  // Error CS0272: el set es privado"); return; }
+      views.expo.mark([[3, 9]]);
+      var amt = k === "dep" ? 2000 : k === "ret1" ? 1500 : 50000, ok;
+      if (k === "dep") { X.s += amt; ok = true; } else if (amt > X.s) ok = false; else { X.s -= amt; ok = true; }
+      $("#expoSaldo").textContent = fmt(X.s);
+      log(ok ? "g" : "e", (k === "dep" ? "Depositar(2000)" : "Retirar(" + amt + ")") + " -> " + ok + "  | Saldo = " + fmt(X.s));
+    });
+  });
+
+  /* ---------- Slide 16: composición ---------- */
+  var C = [15000, 5000];
+  function renderCompo() {
+    var h = $("#compoCuentas"); h.innerHTML = "";
+    C.forEach(function (s, i) {
+      var o = el("div", "obj"); o.appendChild(el("header", "", "Cuenta #" + (i + 1)));
+      var d = el("div", "sect"); d.appendChild(el("span", "", "Saldo = " + fmt(s))); o.appendChild(d); h.appendChild(o);
+    });
+    var t = C.reduce(function (a, b) { return a + b; }, 0), out = $("#compoOut");
+    out.textContent = "cliente.CantidadDeCuentas() = " + C.length + "   |   cliente.SaldoTotal() = " + fmt(t);
+  }
+  renderCompo();
+  $("#compoAdd").addEventListener("click", function () { if (C.length < 6) { C.push(5000); renderCompo(); } });
+  $("#compoReset").addEventListener("click", function () { C = [15000, 5000]; renderCompo(); });
+
+  /* ---------- Slide 19: solución Producto ---------- */
+  var PR = [{ n: "Teclado", p: 18500, s: 10, v: true }, { n: "Mouse", p: 9200, s: 25, v: false }, { n: "Monitor", p: 145000, s: 4, v: false }];
+  function prLog(cls, t) { var l = $("#prLog"), d = el("div", cls, t); l.appendChild(d); l.scrollTop = l.scrollHeight; }
+  function renderPr() {
+    var host = $("#prList"); host.innerHTML = "";
+    PR.forEach(function (o, i) {
+      var c = el("div", "obj"); c.appendChild(el("header", "", o.n.toLowerCase()));
+      var s = el("div", "sect");
+      s.appendChild(el("span", "", "Precio = " + fmt(o.p))); s.appendChild(el("span", "", "Stock = " + o.s));
+      s.appendChild(el("span", "", "Proveedor = " + (o.v ? "TecnoSur" : "null")));
+      var b = el("div", "sect"); b.style.cssText = "display:flex;flex-wrap:wrap;gap:6px";
+      [["Vender(1)", "v1"], ["Vender(5)", "v5"], ["Precio = -100", "neg"], ["Proveedor", "prov"]].forEach(function (p) {
+        var bt = el("button", "btn small", p[0]); bt.type = "button"; bt.dataset.i = i; bt.dataset.a = p[1]; b.appendChild(bt);
+      });
+      c.appendChild(s); c.appendChild(b); host.appendChild(c);
+    });
+  }
+  renderPr();
+  $("#prList").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var o = PR[+b.dataset.i], a = b.dataset.a, api = views.producto;
+    if (a === "v1" || a === "v5") {
+      var q = a === "v1" ? 1 : 5; api.mark([[31, 37]]);
+      if (q > o.s) prLog("e", o.n.toLowerCase() + ".Vender(" + q + ") -> false  | sin stock suficiente (" + o.s + ")");
+      else { o.s -= q; prLog("g", o.n.toLowerCase() + ".Vender(" + q + ") -> true  | Stock = " + o.s); }
+    } else if (a === "neg") {
+      api.mark([[13, 14]]); prLog("e", o.n.toLowerCase() + ".Precio = -100m -> ArgumentException: el precio no puede ser negativo (sigue en " + fmt(o.p) + ")");
+    } else {
+      api.mark([[20, 20]]); o.v = !o.v; prLog("g", o.n.toLowerCase() + ".Proveedor = " + (o.v ? "new Proveedor(\"TecnoSur\", \"Rosario\")" : "null"));
+    }
+    renderPr();
+  });
+  $("#prForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var n = $("#prName").value.trim().replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ0-9 ]/g, "") || "Producto", p = +$("#prPrice").value, s = Math.trunc(+$("#prStock").value);
+    if (p < 0) { views.producto.mark([[13, 14]]); prLog("e", "new Producto(\"" + n + "\", " + p + "m, " + s + ") -> ArgumentException: el precio no puede ser negativo"); return; }
+    if (s < 0) { views.producto.mark([[19, 19]]); prLog("e", "new Producto(\"" + n + "\", " + p + "m, " + s + ") -> ArgumentException: el stock no puede ser negativo"); return; }
+    views.producto.mark([[22, 27]]);
+    if (PR.length >= 6) PR.shift();
+    PR.push({ n: n, p: p, s: s, v: false });
+    prLog("g", "Producto " + n.toLowerCase() + " = new Producto(\"" + n + "\", " + p + "m, " + s + ");");
+    renderPr();
+  });
+
+  /* ---------- Navegación ---------- */
+  var slides = $$(".slide"), idx = 0, stage = $("#stage");
+  function show(i, fromHash) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, j) { s.hidden = j !== idx; });
+    var t = slides[idx].dataset.title;
+    $("#ctitle").textContent = t; $("#cnum").textContent = (idx + 1) + " / " + slides.length;
+    $("#fill").style.width = ((idx + 1) / slides.length * 100) + "%";
+    var tr = $("#track"); tr.setAttribute("aria-valuemax", slides.length); tr.setAttribute("aria-valuenow", idx + 1);
+    $("#prev").disabled = idx === 0; $("#next").disabled = idx === slides.length - 1;
+    $("#announce").textContent = "Diapositiva " + (idx + 1) + " de " + slides.length + ": " + t;
+    stage.scrollTop = 0;
+    if (!fromHash) { try { history.replaceState(null, "", "#s" + (idx + 1)); } catch (e) { try { location.hash = "s" + (idx + 1); } catch (e2) {} } }
+    store("poo-slide", String(idx));
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g) show(+g.dataset.go - 1); });
+  $("#prev").addEventListener("click", function () { show(idx - 1); });
+  $("#next").addEventListener("click", function () { show(idx + 1); });
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+    else if (e.key === "Home") { e.preventDefault(); show(0); }
+    else if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
+    else if (e.key === "f" || e.key === "F") { fs(); }
+  });
+  function fs() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+  $("#fsBtn").addEventListener("click", fs);
+  $("#themeBtn").addEventListener("click", function () {
+    var r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark ? "light" : "dark"; store("poo-theme", r.dataset.theme);
+  });
+  var th = store("poo-theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th;
+
+  var m = /^#s(\d+)$/.exec(location.hash), start = m ? +m[1] - 1 : 0;
+  show(start, true);
+  window.addEventListener("hashchange", function () { var h = /^#s(\d+)$/.exec(location.hash); if (h) show(+h[1] - 1, true); });
+})();
+</script>

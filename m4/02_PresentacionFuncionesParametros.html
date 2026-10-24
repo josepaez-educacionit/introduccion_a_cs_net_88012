@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Funciones, procedimientos y parámetros en C#</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,800;110,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Concepto: la tabla como plano cuadriculado. Misma identidad visual que la presentación de POO del módulo.
+   Papel técnico con cuadrícula, tinta azul de delineante y un lápiz ámbar para resaltar. */
+:root {
+  --bg: #f4f5fc;
+  --panel: #ffffff;
+  --fg: #15163f;
+  --muted: #4d5079;
+  --line: #d6d9ee;
+  --ink: #2a4bdc;
+  --ink-soft: #e5e9fd;
+  --accent: #c8f20d;
+  --accent-fg: #15163f;
+  --ok: #12701f;
+  --ok-soft: #e6f8d2;
+  --bad: #c0261f;
+  --bad-soft: #fbe6e4;
+  --code-bg: #15163f;
+  --code-fg: #e8eaff;
+  --code-line: #26296a;
+  --code-hl: #2d3aa3;
+  --tk-k: #94a9ff;
+  --tk-t: #b4f23a;
+  --tk-s: #ffd36e;
+  --tk-c: #9296cc;
+  --tk-n: #ff9d8a;
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+    --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+    --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+    --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+  --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+  --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+  --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+.bar {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-stretch: 110%; letter-spacing: .02em; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand b { color: var(--ink); }
+.tools { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); font-size: .85rem; font-weight: 500;
+}
+.icon-btn:hover { border-color: var(--ink); }
+
+.stage {
+  overflow-y: auto; overflow-x: hidden; min-height: 0;
+  padding-block: clamp(16px, 3vh, 36px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: clamp(16px, 1.25vw + 6px, 20px);
+}
+.slide { max-width: 1180px; margin: 0 auto; display: grid; gap: clamp(14px, 2.2vh, 26px); animation: enter .35s ease both; }
+.slide[hidden] { display: none; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } * { transition: none !important; } }
+
+.eyebrow { margin: 0; font-family: var(--font-mono); font-size: .72em; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
+h1, h2, h3 { font-family: var(--font-display); font-stretch: 105%; font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.7rem); }
+h3 { font-size: 1.15em; line-height: 1.2; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 1.1em; color: var(--muted); }
+.hl-text { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 55%, transparent) 62%); }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+p code, li code, td code { background: var(--ink-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); align-items: start; }
+.cols.wide-left { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
+@media (max-width: 860px) { .cols, .cols.wide-left { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card.key { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
+.card h3 { margin-bottom: 6px; }
+.card p { color: var(--muted); font-size: .92em; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: .68em; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--ink-soft); color: var(--ink); margin-bottom: 8px; }
+.tag.now { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* Controles */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .btn {
+  min-height: 40px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 500; font-size: .88em;
+}
+.seg button:hover, .btn:hover { border-color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.btn.small { min-height: 34px; padding: 3px 10px; font-size: .8em; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+label.field { display: grid; gap: 4px; font-size: .8em; color: var(--muted); font-weight: 500; }
+input[type="text"], input[type="number"] {
+  min-height: 40px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font: inherit; width: 100%; min-width: 0;
+}
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+
+/* Código */
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
+.code-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 6px 14px; font-family: var(--font-mono); font-size: .7em; color: var(--tk-c); border-bottom: 1px solid var(--code-line); }
+.code-head button { background: transparent; border: 1px solid var(--code-line); color: var(--code-fg); border-radius: 6px; padding: 2px 10px; font-size: 1em; min-height: 28px; }
+.code-body { overflow-x: auto; padding: 10px 0; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; }
+.ln { display: flex; white-space: pre; padding-right: 16px; }
+.ln i { flex: 0 0 2.6em; text-align: right; padding-right: 1em; color: var(--tk-c); font-style: normal; user-select: none; opacity: .7; }
+.ln.on { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent); }
+.k { color: var(--tk-k); } .t { color: var(--tk-t); } .s { color: var(--tk-s); } .c { color: var(--tk-c); font-style: italic; } .n { color: var(--tk-n); }
+pre.snip { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 12px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; border: 1px solid var(--line); }
+pre.snip.bad { box-shadow: inset 4px 0 0 var(--bad); }
+pre.snip.good { box-shadow: inset 4px 0 0 var(--ok); }
+
+.notes { display: grid; gap: 6px; }
+.note { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 12px; min-height: 40px; font-size: .88em; font-weight: 500; }
+.note[aria-pressed="true"] { border-color: var(--ink); background: var(--ink-soft); }
+.explain { background: var(--ink-soft); border-radius: 8px; padding: 10px 14px; font-size: .9em; min-height: 3.6em; }
+
+.out { border-radius: 10px; padding: 12px 14px; border: 1px solid var(--line); background: var(--panel); font-size: .92em; min-height: 4.2em; }
+.out.ok { background: var(--ok-soft); border-color: var(--ok); }
+.out.bad { background: var(--bad-soft); border-color: var(--bad); }
+.state { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--font-mono); font-size: .85em; margin-top: 6px; }
+.state b { color: var(--ink); }
+
+.log { font-family: var(--font-mono); font-size: .8em; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 10px 14px; min-height: 9em; max-height: 14em; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+.log .e { color: var(--tk-n); } .log .g { color: var(--tk-t); } .log .m { color: var(--tk-c); }
+
+table { border-collapse: collapse; width: 100%; font-size: .88em; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .75em; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.scroll-x { overflow-x: auto; }
+.yes { color: var(--ok); font-weight: 700; } .no { color: var(--bad); font-weight: 700; }
+
+/* Tarjetas de objeto */
+.obj { background: var(--panel); border: 2px solid var(--ink); border-radius: 6px; min-width: 0; }
+.obj header { background: var(--ink); color: var(--panel); padding: 6px 12px; font-family: var(--font-mono); font-size: .8em; font-weight: 700; }
+.obj .sect { padding: 8px 12px; border-top: 1px dashed var(--line); font-family: var(--font-mono); font-size: .82em; display: grid; gap: 2px; }
+.obj .sect h4 { margin: 0 0 2px; font: 500 .72em var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.obj.template { border-style: dashed; }
+.obj.template header { background: var(--accent); color: var(--accent-fg); }
+.insts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.insts .obj { animation: enter .3s ease both; }
+.priv { color: var(--bad); } .pub { color: var(--ok); }
+
+/* Composición */
+.compo { display: grid; gap: 12px; }
+.compo .children { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; padding-left: 18px; border-left: 3px solid var(--accent); margin-left: 8px; }
+
+.illus { width: 100%; height: auto; max-height: 46vh; }
+.illus text { font-family: var(--font-mono); font-size: 13px; fill: var(--fg); }
+.illus .muted { fill: var(--muted); }
+.illus .stroke { fill: none; stroke: var(--ink); stroke-width: 2; }
+.illus .dash { stroke-dasharray: 5 4; }
+.illus .wall { fill: var(--wall, var(--ink-soft)); stroke: var(--ink); stroke-width: 2; }
+.illus .door { fill: var(--accent); }
+
+/* Navegación */
+.foot {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  padding-top: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 4px solid var(--accent); background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+.progress { display: grid; gap: 4px; min-width: 0; }
+.track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--ink); transition: width .3s ease; }
+.counter { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.counter span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-btn { min-width: 48px; height: 44px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); font-weight: 600; padding: 0 16px; }
+.nav-btn.alt { background: var(--panel); color: var(--ink); }
+.nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+.agenda { display: grid; gap: 10px; counter-reset: p; }
+.agenda button { display: grid; grid-template-columns: 3.2em 1fr; gap: 6px; align-items: baseline; text-align: left; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.agenda button:hover { border-color: var(--ink); }
+.agenda .pn { font-family: var(--font-mono); color: var(--ink); font-weight: 700; font-size: .85em; }
+.agenda small { display: block; color: var(--muted); font-size: .8em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+/* Flujos y memoria */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.flow .arrow { font-size: 1.5em; color: var(--ink); font-weight: 700; }
+.node { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 10px 14px; font-family: var(--font-mono); font-size: .82em; min-width: 0; overflow-wrap: anywhere; }
+.node small { display: block; color: var(--muted); font-size: .78em; margin-bottom: 2px; }
+.node.fn { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.node.fn small { color: var(--panel); opacity: .8; }
+.node.proc { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.node.proc small { color: var(--accent-fg); }
+.node.out { border-color: var(--ok); background: var(--ok-soft); }
+.scopes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.scope { border: 2px dashed var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 130px; background: var(--panel); }
+.scope h4 { margin: 0; font: 500 .72em var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.scope .none { color: var(--muted); font-size: .85em; }
+.var { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 2px solid var(--ink); border-radius: 8px; padding: 6px 10px; font-family: var(--font-mono); font-size: .88em; background: var(--ink-soft); min-width: 0; }
+.var b { font-size: 1.1em; }
+.var small { display: block; color: var(--muted); font-size: .75em; }
+.var.alias { border-style: dashed; }
+.var.chg { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
+.var.chg small { color: var(--accent-fg); }
+.bigval { font-family: var(--font-mono); font-size: 1.5em; font-weight: 700; color: var(--ink); }
+.task { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.task .fb { grid-column: 1 / -1; font-size: .85em; }
+.task.okk { border-color: var(--ok); background: var(--ok-soft); }
+.task.nok { border-color: var(--bad); background: var(--bad-soft); }
+.tbl2 td:first-child { font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="bar">
+    <div class="brand">FUNCIONES Y PARÁMETROS <b>/</b> MÓDULO 4</div>
+    <div class="tools">
+      <button class="icon-btn" data-go="2" aria-label="Ir al índice">Índice</button>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+      <button class="icon-btn" id="fsBtn" aria-label="Pantalla completa">Pantalla completa</button>
+    </div>
+  </div>
+
+  <main class="stage" id="stage" tabindex="-1">
+
+    <!-- 1. Portada -->
+    <section class="slide" data-title="Portada">
+      <div class="cols" style="align-items:center">
+        <div style="display:grid;gap:16px">
+          <p class="eyebrow">Introducción a C# y .NET · Módulo 4</p>
+          <h1 style="font-size:clamp(2rem,4.2vw,3.3rem)">Funciones, procedimientos y <span class="hl-text">parámetros</span></h1>
+          <p class="lead">Dividir un programa en piezas con nombre y entender qué ocurre con los datos que viajan hacia ellas.</p>
+          <div class="row"><button class="btn primary" data-go="3">Comenzar</button><button class="btn" data-go="2">Ver el índice</button></div>
+        </div>
+        <svg class="illus" viewBox="0 0 520 300" role="img" aria-label="Una función representada como una caja: entran dos datos, 15000 y 20, y sale un resultado, 12000">
+          <g text-anchor="middle">
+            <rect x="20" y="70" width="100" height="44" rx="8" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="70" y="97">15000m</text>
+            <rect x="20" y="170" width="100" height="44" rx="8" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="70" y="197">20m</text>
+            <path class="stroke" d="M122 92 H178 M168 84 L180 92 L168 100"/>
+            <path class="stroke" d="M122 192 H178 M168 184 L180 192 L168 200"/>
+            <rect x="180" y="50" width="170" height="190" rx="12" fill="var(--ink)"/>
+            <text x="265" y="100" style="fill:var(--panel);font-weight:700">Función</text>
+            <text x="265" y="130" style="fill:var(--panel)" font-size="11">CalcularPrecio</text>
+            <text x="265" y="146" style="fill:var(--panel)" font-size="11">ConDescuento</text>
+            <text x="265" y="196" style="fill:var(--panel)" font-size="11">precio - descuento</text>
+            <path class="stroke" d="M352 145 H408 M398 137 L410 145 L398 153" style="stroke:var(--accent)"/>
+            <rect x="412" y="123" width="92" height="44" rx="8" fill="var(--accent)"/><text x="458" y="150" style="fill:var(--accent-fg);font-weight:700">12000m</text>
+            <text x="70" y="52" class="muted">argumentos</text><text x="458" y="108" class="muted">return</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2. Índice -->
+    <section class="slide" data-title="Índice">
+      <header><p class="eyebrow">Recorrido</p><h2>Seis partes, de lo simple a lo completo</h2></header>
+      <div class="agenda cols" style="align-items:stretch">
+        <button data-go="3"><span class="pn">P1</span><span>Funciones<small>Entradas, return y tipos de resultado</small></span></button>
+        <button data-go="6"><span class="pn">P2</span><span>Procedimientos<small>void y la diferencia con una función</small></span></button>
+        <button data-go="9"><span class="pn">P3</span><span>Parámetros<small>Parámetro frente a argumento</small></span></button>
+        <button data-go="11"><span class="pn">P4</span><span>Paso por valor<small>El parámetro es una copia</small></span></button>
+        <button data-go="13"><span class="pn">P5</span><span>Paso por referencia<small>La palabra ref y sus usos</small></span></button>
+        <button data-go="18"><span class="pn">P6</span><span>Resumen y práctica<small>Ideas clave y ejercicios</small></span></button>
+      </div>
+    </section>
+
+    <!-- 3. Qué es una función -->
+    <section class="slide" data-title="¿Qué es una función?">
+      <header><p class="eyebrow">Parte 1 · Funciones</p><h2>Una función recibe datos y devuelve un resultado</h2></header>
+      <p class="lead">Cambiá los datos de entrada y mirá qué entrega.</p>
+      <div class="cols">
+        <div style="display:grid;gap:14px;min-width:0">
+          <div class="row">
+            <label class="field" style="flex:1 1 120px">precioLista<input type="number" id="mPrecio" value="15000" min="0" step="500"></label>
+            <label class="field" style="flex:1 1 120px">porcentajeDescuento<input type="number" id="mDesc" value="20" min="0" max="100" step="5"></label>
+          </div>
+          <div class="flow" aria-live="polite">
+            <div class="node"><small>entradas</small><span id="mIn"></span></div>
+            <span class="arrow" aria-hidden="true">&rarr;</span>
+            <div class="node fn"><small>función</small>CalcularPrecioConDescuento</div>
+            <span class="arrow" aria-hidden="true">&rarr;</span>
+            <div class="node out"><small>return</small><b id="mOut"></b></div>
+          </div>
+        </div>
+        <pre class="snip">static decimal CalcularPrecioConDescuento(decimal precioLista, decimal porcentajeDescuento)
+{
+    decimal montoDescuento = precioLista * porcentajeDescuento / 100;
+    return precioLista - montoDescuento;
+}</pre>
+      </div>
+    </section>
+
+    <!-- 4. Anatomía -->
+    <section class="slide" data-title="Anatomía de una función">
+      <header><p class="eyebrow">Parte 1 · Funciones</p><h2>Las partes de una función</h2></header>
+      <div class="codeview" data-code="anat"></div>
+    </section>
+
+    <!-- 5. Probá funciones -->
+    <section class="slide" data-title="Probá distintas funciones">
+      <header><p class="eyebrow">Parte 1 · Funciones</p><h2>El resultado puede ser de cualquier tipo</h2></header>
+      <div class="seg" id="fnTabs" role="group" aria-label="Función"></div>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <label class="field">Argumento<input type="text" id="fnArg" autocomplete="off"></label>
+          <div class="out" id="fnOut" aria-live="polite"></div>
+        </div>
+        <pre class="snip" id="fnCode"></pre>
+      </div>
+    </section>
+
+    <!-- 6. Función vs procedimiento -->
+    <section class="slide" data-title="Función y procedimiento">
+      <header><p class="eyebrow">Parte 2 · Procedimientos</p><h2>La diferencia: ¿entrega un valor?</h2></header>
+      <div class="seg" id="fpTabs" role="group" aria-label="Tipo de bloque">
+        <button type="button" aria-pressed="true" data-k="f">Función</button>
+        <button type="button" aria-pressed="false" data-k="p">Procedimiento</button>
+      </div>
+      <div class="flow" id="fpFlow" aria-live="polite"></div>
+      <div class="cols">
+        <pre class="snip" id="fpCode"></pre>
+        <div style="display:grid;gap:10px"><div class="explain" id="fpNote"></div><pre class="snip bad" id="fpBad" hidden></pre></div>
+      </div>
+    </section>
+
+    <!-- 7. Retorno anticipado -->
+    <section class="slide" data-title="Retorno anticipado">
+      <header><p class="eyebrow">Parte 2 · Procedimientos</p><h2>Un procedimiento puede terminar antes con return</h2></header>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <form class="row" id="alForm" autocomplete="off">
+            <label class="field" style="flex:1 1 110px">nombre<input type="text" id="alNom" value="Mouse" maxlength="14"></label>
+            <label class="field" style="flex:1 1 80px">stock<input type="number" id="alStock" value="3" min="0" step="1"></label>
+            <label class="field" style="flex:1 1 80px">stockMinimo<input type="number" id="alMin" value="5" min="0" step="1"></label>
+            <button class="btn primary" type="submit">Invocar</button>
+          </form>
+          <div class="log" id="alLog" aria-label="Consola"></div>
+        </div>
+        <div class="codeview" data-code="alerta"></div>
+      </div>
+    </section>
+
+    <!-- 8. Clasificador -->
+    <section class="slide" data-title="¿Función o procedimiento?">
+      <header><p class="eyebrow">Parte 2 · Procedimientos</p><h2>¿Función o procedimiento?</h2></header>
+      <p class="lead">Si importa el <b>dato</b>, es una función. Si importa el <b>efecto</b>, es un procedimiento.</p>
+      <div id="tasks" style="display:grid;gap:8px;max-width:820px"></div>
+      <div class="out" id="taskScore" aria-live="polite" style="max-width:820px;min-height:2.6em"></div>
+    </section>
+
+    <!-- 9. Parámetro vs argumento -->
+    <section class="slide" data-title="Parámetro y argumento">
+      <header><p class="eyebrow">Parte 3 · Parámetros</p><h2>El parámetro se declara; el argumento se entrega</h2></header>
+      <div class="cols wide-left">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="row">
+            <label class="field" style="flex:1 1 100px">subtotal<input type="number" id="paSub" value="20000" min="0" step="1000"></label>
+            <label class="field" style="flex:1 1 100px">porcentajeDescuento<input type="number" id="paDesc" value="15" min="0" max="100" step="5"></label>
+            <label class="field" style="flex:0 0 auto;align-content:end"><span><input type="checkbox" id="paIva" checked> incluyeIva</span></label>
+          </div>
+          <div class="seg" id="paTabs" role="group" aria-label="Forma de invocar">
+            <button type="button" aria-pressed="true" data-n="0">Por posición</button>
+            <button type="button" aria-pressed="false" data-n="1">Con nombre</button>
+          </div>
+          <pre class="snip" id="paCall" aria-live="polite"></pre>
+          <div class="out" id="paOut" aria-live="polite"></div>
+        </div>
+        <div style="display:grid;gap:12px;min-width:0">
+          <pre class="snip">static decimal CalcularTotalFactura(
+    decimal subtotal,
+    decimal porcentajeDescuento,
+    bool incluyeIva)</pre>
+          <div class="scroll-x"><table class="tbl2"><thead><tr><th>Parámetro</th><th>Argumento</th></tr></thead><tbody id="paMap"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Errores de argumentos -->
+    <section class="slide" data-title="Errores con argumentos">
+      <header><p class="eyebrow">Parte 3 · Parámetros</p><h2>Los argumentos deben coincidir con los parámetros</h2></header>
+      <div class="seg" id="aeTabs" role="group" aria-label="Error frecuente">
+        <button type="button" aria-pressed="true" data-e="0">Orden invertido</button>
+        <button type="button" aria-pressed="false" data-e="1">Tipo incompatible</button>
+        <button type="button" aria-pressed="false" data-e="2">Faltan argumentos</button>
+      </div>
+      <div class="cols">
+        <div style="display:grid;gap:6px"><span class="tag">Incorrecto</span><pre class="snip bad" id="aeBad"></pre></div>
+        <div style="display:grid;gap:6px"><span class="tag now">Correcto</span><pre class="snip good" id="aeGood"></pre></div>
+      </div>
+      <div class="explain" id="aeNote" aria-live="polite"></div>
+    </section>
+
+    <!-- 11. Por valor: stepper -->
+    <section class="slide" data-title="Paso por valor">
+      <header><p class="eyebrow">Parte 4 · Paso por valor</p><h2>El parámetro recibe una copia</h2></header>
+      <div class="cols">
+        <div class="stepper-host" data-st="valor" style="min-width:0"></div>
+        <div class="codeview" data-code="valor"></div>
+      </div>
+    </section>
+
+    <!-- 12. Por valor: probalo -->
+    <section class="slide" data-title="Por valor: probalo">
+      <header><p class="eyebrow">Parte 4 · Paso por valor</p><h2>Lo que cambia dentro se pierde afuera</h2></header>
+      <div class="seg" id="pvTabs" role="group" aria-label="Tipo de bloque">
+        <button type="button" aria-pressed="true" data-k="p">Procedimiento</button>
+        <button type="button" aria-pressed="false" data-k="f">Función que devuelve</button>
+      </div>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="row">
+            <label class="field" style="flex:1 1 110px">precioProducto<input type="number" id="pvP" value="25000" min="0" step="1000"></label>
+            <label class="field" style="flex:1 1 110px">descuento %<input type="number" id="pvD" value="10" min="0" max="100" step="5"></label>
+          </div>
+          <div class="scopes" id="pvScopes" aria-live="polite"></div>
+          <div class="explain" id="pvNote"></div>
+        </div>
+        <pre class="snip" id="pvCode"></pre>
+      </div>
+    </section>
+
+    <!-- 13. Por referencia: stepper -->
+    <section class="slide" data-title="Paso por referencia">
+      <header><p class="eyebrow">Parte 5 · Paso por referencia</p><h2>Con ref, el parámetro es el dato original</h2></header>
+      <div class="cols">
+        <div class="stepper-host" data-st="ref" style="min-width:0"></div>
+        <div class="codeview" data-code="ref"></div>
+      </div>
+    </section>
+
+    <!-- 14. Comparador -->
+    <section class="slide" data-title="Valor frente a referencia">
+      <header><p class="eyebrow">Parte 5 · Paso por referencia</p><h2>El mismo problema, dos formas de pasar</h2></header>
+      <div class="row">
+        <label class="field" style="flex:0 1 140px">saldoCuenta<input type="number" id="cmpS" value="10000" min="0" step="1000"></label>
+        <label class="field" style="flex:0 1 140px">interés %<input type="number" id="cmpI" value="5" min="0" max="100" step="1"></label>
+      </div>
+      <div class="cols">
+        <article class="card"><span class="tag">Por valor</span>
+          <pre class="snip" style="margin:6px 0 10px">AplicarInteres(saldoCuenta, 5m);</pre>
+          <p>Después de invocar:</p><div class="bigval" id="cmpV" aria-live="polite"></div><p>El original no cambió.</p></article>
+        <article class="card key"><span class="tag now">Por referencia</span>
+          <pre class="snip" style="margin:6px 0 10px">AplicarInteres(ref saldoCuenta, 5m);</pre>
+          <p>Después de invocar:</p><div class="bigval" id="cmpR" aria-live="polite"></div><p>El original se modificó.</p></article>
+      </div>
+    </section>
+
+    <!-- 15. Transferencia -->
+    <section class="slide" data-title="Varios valores a la vez">
+      <header><p class="eyebrow">Parte 5 · Paso por referencia</p><h2>ref permite modificar varios valores</h2></header>
+      <p class="lead">Un <code>return</code> entrega un solo dato. Con <code>ref</code> una operación actualiza dos saldos.</p>
+      <div class="cols">
+        <div style="display:grid;gap:12px;min-width:0">
+          <div class="scopes" id="trScopes" aria-live="polite"></div>
+          <div class="row">
+            <label class="field" style="flex:1 1 120px">monto<input type="number" id="trMonto" value="15000" min="0" step="5000"></label>
+            <button class="btn primary" type="button" id="trGo">Transferir</button>
+            <button class="btn" type="button" id="trReset">Reiniciar</button>
+          </div>
+          <div class="log" id="trLog" aria-label="Consola"></div>
+        </div>
+        <div class="codeview" data-code="transf"></div>
+      </div>
+    </section>
+
+    <!-- 16. Intercambio -->
+    <section class="slide" data-title="Intercambiar valores">
+      <header><p class="eyebrow">Parte 5 · Paso por referencia</p><h2>Intercambiar dos variables</h2></header>
+      <div class="cols">
+        <div class="stepper-host" data-st="swap" style="min-width:0"></div>
+        <div class="codeview" data-code="swap"></div>
+      </div>
+    </section>
+
+    <!-- 17. Errores con ref -->
+    <section class="slide" data-title="Errores con ref">
+      <header><p class="eyebrow">Parte 5 · Paso por referencia</p><h2>Errores frecuentes con ref</h2></header>
+      <div class="seg" id="reTabs" role="group" aria-label="Error frecuente">
+        <button type="button" aria-pressed="true" data-e="0">Olvidar ref al invocar</button>
+        <button type="button" aria-pressed="false" data-e="1">Pasar un literal</button>
+        <button type="button" aria-pressed="false" data-e="2">Intercambiar sin ref</button>
+      </div>
+      <div class="cols">
+        <div style="display:grid;gap:6px"><span class="tag">Incorrecto</span><pre class="snip bad" id="reBad"></pre></div>
+        <div style="display:grid;gap:6px"><span class="tag now">Correcto</span><pre class="snip good" id="reGood"></pre></div>
+      </div>
+      <div class="explain" id="reNote" aria-live="polite"></div>
+    </section>
+
+    <!-- 18. Resumen -->
+    <section class="slide" data-title="Resumen">
+      <header><p class="eyebrow">Para recordar</p><h2>En resumen</h2></header>
+      <div class="grid3">
+        <div class="card key"><span class="tag">Función</span><h3>Devuelve un valor</h3><p>Termina con <code>return</code>.</p></div>
+        <div class="card"><span class="tag">Procedimiento</span><h3>Realiza una acción</h3><p>Tipo <code>void</code>.</p></div>
+        <div class="card"><span class="tag">Parámetro</span><h3>Dato declarado</h3><p>El argumento es el valor entregado.</p></div>
+        <div class="card"><span class="tag">Por valor</span><h3>Recibe una copia</h3><p>El original se protege.</p></div>
+        <div class="card"><span class="tag">Por referencia</span><h3>Usa el original</h3><p><code>ref</code> en ambos lados.</p></div>
+        <div class="card"><span class="tag">Criterio</span><h3>Valor por defecto</h3><p><code>ref</code> solo si hace falta.</p></div>
+      </div>
+    </section>
+
+    <!-- 19. Práctica -->
+    <section class="slide" data-title="Para practicar">
+      <header><p class="eyebrow">Ahora te toca</p><h2>Ejercicios</h2></header>
+      <div class="grid3">
+        <div class="card"><span class="tag now">Básico</span><h3>EsPar</h3><p>Función que indica si un entero es par.</p></div>
+        <div class="card"><span class="tag now">Básico</span><h3>MostrarBoleta</h3><p>Procedimiento con tres parámetros.</p></div>
+        <div class="card"><span class="tag">Intermedio</span><h3>Predecir</h3><p>Anticipá el valor final tras una copia.</p></div>
+        <div class="card"><span class="tag">Intermedio</span><h3>Depositar</h3><p>Sumá un monto con <code>ref</code>.</p></div>
+        <div class="card"><span class="tag">Desafío</span><h3>Cociente y resto</h3><p>Devolvé dos resultados con <code>ref</code>.</p></div>
+        <div class="card"><span class="tag">Desafío</span><h3>Ordenar dos</h3><p>Dejá el menor en el primer parámetro.</p></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="foot" aria-label="Navegación de la presentación">
+    <button class="nav-btn alt" id="prev" aria-label="Diapositiva anterior">&larr; Anterior</button>
+    <div class="progress">
+      <div class="track" role="progressbar" aria-label="Progreso" aria-valuemin="1" id="track"><div class="fill" id="fill"></div></div>
+      <div class="counter"><span id="ctitle"></span><span id="cnum"></span></div>
+    </div>
+    <button class="nav-btn" id="next" aria-label="Diapositiva siguiente">Siguiente &rarr;</button>
+  </nav>
+</div>
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var fmt = function (n) { return Number(n).toLocaleString("es-AR"); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
+  function num(id) { var v = Number($(id).value); return isFinite(v) ? v : 0; }
+
+  /* ---------- Resaltado de sintaxis C# ---------- */
+  var KW = new Set("class static void return new if else for const ref int double bool decimal string true false var using".split(" "));
+  var TY = new Set("Console Program".split(" "));
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function hl(line) {
+    var re = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d+(?:\.\d+)?m?\b)|(\b[A-Za-z_]\w*\b)/g, out = "", last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      var t = m[0], cls = "";
+      if (m[1]) cls = "c"; else if (m[2]) cls = "s"; else if (m[3]) cls = "n";
+      else if (KW.has(t)) cls = "k"; else if (TY.has(t)) cls = "t";
+      out += cls ? '<span class="' + cls + '">' + esc(t) + "</span>" : esc(t);
+      last = re.lastIndex;
+    }
+    return out + esc(line.slice(last));
+  }
+  function setSnip(pre, text) { pre.innerHTML = text.split("\n").map(hl).join("\n"); }
+  $$("pre.snip").forEach(function (p) { if (p.textContent.trim()) setSnip(p, p.textContent); });
+
+  /* ---------- Visor de código con notas ---------- */
+  var CODE = {
+    anat: { file: "CalcularPrecioConDescuento.cs", src: [
+      "static decimal CalcularPrecioConDescuento(decimal precioLista, decimal porcentajeDescuento)", "{",
+      "    decimal montoDescuento = precioLista * porcentajeDescuento / 100;", "    return precioLista - montoDescuento;", "}", "",
+      "decimal precioFinal = CalcularPrecioConDescuento(15000m, 20m);"],
+      notes: [
+        ["Tipo de retorno", [1, 1], "decimal es el tipo del valor que la función entrega. Va antes del nombre."],
+        ["Nombre", [1, 1], "Describe la tarea: un verbo y lo que se calcula."],
+        ["Parámetros", [1, 1], "Los datos de entrada, cada uno con su tipo y su nombre."],
+        ["Cuerpo", [3, 3], "Las instrucciones que resuelven la tarea."],
+        ["return", [4, 4], "Entrega el resultado y termina la función. El valor debe ser del tipo declarado."],
+        ["Invocación", [7, 7], "Se escribe el nombre con los argumentos en el mismo orden. El valor devuelto se guarda en una variable."]] },
+    alerta: { file: "MostrarAlertaStock.cs", src: [
+      "static void MostrarAlertaStock(string nombre, int stock, int stockMinimo)", "{", "    if (stock > stockMinimo)", "    {",
+      "        return;   // stock suficiente", "    }", "",
+      "    Console.WriteLine(\"Alerta: \" + nombre + \" tiene stock bajo (\" + stock + \").\");", "}"], notes: [] },
+    valor: { file: "PorValor.cs", src: [
+      "static decimal CalcularSaldoConInteres(decimal saldo, decimal porcentajeInteres)", "{",
+      "    saldo += saldo * porcentajeInteres / 100;", "    return saldo;", "}", "",
+      "decimal saldoCuenta = 10000m;", "decimal saldoProyectado = CalcularSaldoConInteres(saldoCuenta, 5m);",
+      "Console.WriteLine(saldoCuenta);        // 10000", "Console.WriteLine(saldoProyectado);   // 10500"], notes: [] },
+    ref: { file: "PorReferencia.cs", src: [
+      "static void AplicarInteres(ref decimal saldo, decimal porcentajeInteres)", "{",
+      "    saldo += saldo * porcentajeInteres / 100;", "}", "",
+      "decimal saldoCuenta = 10000m;", "AplicarInteres(ref saldoCuenta, 5m);", "Console.WriteLine(saldoCuenta);   // 10500"], notes: [] },
+    transf: { file: "RealizarTransferencia.cs", src: [
+      "static void RealizarTransferencia(ref decimal saldoOrigen, ref decimal saldoDestino, decimal monto)", "{",
+      "    if (monto > saldoOrigen)", "    {", "        Console.WriteLine(\"Transferencia rechazada.\");", "        return;", "    }", "",
+      "    saldoOrigen -= monto;", "    saldoDestino += monto;", "}"], notes: [] },
+    swap: { file: "IntercambiarValores.cs", src: [
+      "static void IntercambiarValores(ref int primerValor, ref int segundoValor)", "{",
+      "    int valorTemporal = primerValor;", "    primerValor = segundoValor;", "    segundoValor = valorTemporal;", "}", "",
+      "int turnoActual = 3;", "int turnoSiguiente = 8;", "IntercambiarValores(ref turnoActual, ref turnoSiguiente);"], notes: [] }
+  };
+  var views = {};
+  function renderCode(host) {
+    var d = CODE[host.dataset.code]; if (!d) return;
+    var box = el("div", "code"), head = el("div", "code-head"), body = el("div", "code-body");
+    head.appendChild(el("span", "", d.file));
+    var cp = el("button", "", "Copiar"); cp.type = "button"; cp.setAttribute("aria-label", "Copiar el código");
+    cp.addEventListener("click", function () {
+      function done(ok) { cp.textContent = ok ? "Copiado" : "Seleccioná y copiá"; setTimeout(function () { cp.textContent = "Copiar"; }, 1500); }
+      try { navigator.clipboard.writeText(d.src.join("\n")).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+    });
+    head.appendChild(cp); box.appendChild(head);
+    var lines = d.src.map(function (l, i) {
+      var r = el("div", "ln"), n = el("i", "", String(i + 1)); n.setAttribute("aria-hidden", "true");
+      var c = el("span"); c.innerHTML = hl(l) || " "; r.appendChild(n); r.appendChild(c); body.appendChild(r); return r;
+    });
+    box.appendChild(body);
+    var wrap = el("div"); wrap.style.cssText = "display:grid;gap:10px;min-width:0"; wrap.appendChild(box);
+    var api = { mark: function (ranges) { lines.forEach(function (r, i) { var on = ranges.some(function (g) { return i + 1 >= g[0] && i + 1 <= g[1]; }); r.classList.toggle("on", on); }); } };
+    if (d.notes.length) {
+      var list = el("div", "notes"), ex = el("div", "explain"); ex.setAttribute("aria-live", "polite");
+      var btns = d.notes.map(function (n, i) {
+        var b = el("button", "note", n[0]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { select(i); }); list.appendChild(b); return b;
+      });
+      var select = function (i) { btns.forEach(function (b, j) { b.setAttribute("aria-pressed", String(i === j)); }); api.mark([d.notes[i][1]]); ex.textContent = d.notes[i][2]; };
+      wrap.appendChild(list); wrap.appendChild(ex); select(0);
+    }
+    host.appendChild(wrap); views[host.dataset.code] = api;
+  }
+  $$(".codeview").forEach(renderCode);
+
+  function seg(id, cb) {
+    var g = $(id); if (!g) return;
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      $$("button", g).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      cb(b);
+    });
+  }
+  function segButtons(id, labels, attr) {
+    var g = $(id); labels.forEach(function (t, i) { var b = el("button", "", t); b.type = "button"; b.dataset[attr] = i; b.setAttribute("aria-pressed", String(i === 0)); g.appendChild(b); });
+  }
+  function errTabs(prefix, list) {
+    function show(i) { setSnip($("#" + prefix + "Bad"), list[i].bad); setSnip($("#" + prefix + "Good"), list[i].good); $("#" + prefix + "Note").textContent = list[i].t; }
+    show(0); seg("#" + prefix + "Tabs", function (b) { show(+b.dataset.e); });
+  }
+
+  /* ---------- Memoria: ámbitos y variables ---------- */
+  function varBox(v) {
+    var d = el("div", "var" + (v.chg ? " chg" : "") + (v.alias ? " alias" : ""));
+    var l = el("span"); l.appendChild(document.createTextNode(v.n));
+    if (v.alias) l.appendChild(el("small", "", "mismo dato que " + v.alias)); else if (v.note) l.appendChild(el("small", "", v.note));
+    d.appendChild(l); d.appendChild(el("b", "", String(v.v))); return d;
+  }
+  function scope(title, vars) {
+    var s = el("div", "scope"); s.appendChild(el("h4", "", title));
+    if (!vars || !vars.length) s.appendChild(el("span", "none", "(vacío)")); else vars.forEach(function (v) { s.appendChild(varBox(v)); });
+    return s;
+  }
+  function stepper(host, key, steps) {
+    var scopes = el("div", "scopes"), ex = el("div", "explain"), row = el("div", "row"), i = 0;
+    ex.setAttribute("aria-live", "polite");
+    function mk(t, cls) { var b = el("button", "btn " + (cls || ""), t); b.type = "button"; return b; }
+    var back = mk("Atrás"), next = mk("Paso", "primary"), reset = mk("Reiniciar");
+    function draw() {
+      var s = steps[i]; scopes.innerHTML = "";
+      scopes.appendChild(scope("Main", s.main)); scopes.appendChild(scope(s.fn ? s.fn.t : "Función", s.fn ? s.fn.vars : null));
+      ex.textContent = (i + 1) + " / " + steps.length + " · " + s.note;
+      views[key].mark(s.mark); back.disabled = i === 0; next.disabled = i === steps.length - 1;
+    }
+    back.addEventListener("click", function () { if (i > 0) { i--; draw(); } });
+    next.addEventListener("click", function () { if (i < steps.length - 1) { i++; draw(); } });
+    reset.addEventListener("click", function () { i = 0; draw(); });
+    [back, next, reset].forEach(function (b) { row.appendChild(b); });
+    host.style.cssText = "display:grid;gap:12px;min-width:0"; host.appendChild(scopes); host.appendChild(row); host.appendChild(ex); draw();
+  }
+  stepper($('[data-st="valor"]'), "valor", [
+    { mark: [[7, 7]], main: [{ n: "saldoCuenta", v: "10000" }], note: "En Main existe la variable original saldoCuenta." },
+    { mark: [[8, 8]], main: [{ n: "saldoCuenta", v: "10000" }], fn: { t: "CalcularSaldoConInteres", vars: [{ n: "saldo", v: "10000", note: "copia" }, { n: "porcentajeInteres", v: "5" }] }, note: "Al invocar, el valor se COPIA en el parámetro saldo." },
+    { mark: [[3, 3]], main: [{ n: "saldoCuenta", v: "10000" }], fn: { t: "CalcularSaldoConInteres", vars: [{ n: "saldo", v: "10500", chg: true, note: "copia" }, { n: "porcentajeInteres", v: "5" }] }, note: "Se modifica solo la copia. saldoCuenta sigue valiendo 10000." },
+    { mark: [[4, 4]], main: [{ n: "saldoCuenta", v: "10000" }], fn: { t: "CalcularSaldoConInteres", vars: [{ n: "saldo", v: "10500", note: "copia" }, { n: "porcentajeInteres", v: "5" }] }, note: "return entrega 10500 a quien invocó. Al terminar, la copia desaparece." },
+    { mark: [[8, 8]], main: [{ n: "saldoCuenta", v: "10000" }, { n: "saldoProyectado", v: "10500", chg: true }], note: "El resultado se guarda porque fue devuelto." },
+    { mark: [[9, 10]], main: [{ n: "saldoCuenta", v: "10000" }, { n: "saldoProyectado", v: "10500" }], note: "El original se conserva: la función nunca lo tocó." }]);
+  stepper($('[data-st="ref"]'), "ref", [
+    { mark: [[6, 6]], main: [{ n: "saldoCuenta", v: "10000" }], note: "En Main existe la variable original saldoCuenta." },
+    { mark: [[7, 7]], main: [{ n: "saldoCuenta", v: "10000" }], fn: { t: "AplicarInteres", vars: [{ n: "saldo", v: "10000", alias: "saldoCuenta" }, { n: "porcentajeInteres", v: "5" }] }, note: "Con ref no se copia: saldo es otro nombre para saldoCuenta." },
+    { mark: [[3, 3]], main: [{ n: "saldoCuenta", v: "10500", chg: true }], fn: { t: "AplicarInteres", vars: [{ n: "saldo", v: "10500", alias: "saldoCuenta", chg: true }, { n: "porcentajeInteres", v: "5" }] }, note: "Cambiar saldo cambia saldoCuenta: es el mismo dato." },
+    { mark: [[4, 4]], main: [{ n: "saldoCuenta", v: "10500" }], note: "Termina el procedimiento y el cambio permanece." },
+    { mark: [[8, 8]], main: [{ n: "saldoCuenta", v: "10500" }], note: "La consola muestra 10500, sin necesidad de devolver nada." }]);
+  stepper($('[data-st="swap"]'), "swap", [
+    { mark: [[8, 9]], main: [{ n: "turnoActual", v: "3" }, { n: "turnoSiguiente", v: "8" }], note: "Dos variables originales en Main." },
+    { mark: [[10, 10]], main: [{ n: "turnoActual", v: "3" }, { n: "turnoSiguiente", v: "8" }], fn: { t: "IntercambiarValores", vars: [{ n: "primerValor", v: "3", alias: "turnoActual" }, { n: "segundoValor", v: "8", alias: "turnoSiguiente" }] }, note: "Ambos parámetros son alias de las variables originales." },
+    { mark: [[3, 3]], main: [{ n: "turnoActual", v: "3" }, { n: "turnoSiguiente", v: "8" }], fn: { t: "IntercambiarValores", vars: [{ n: "primerValor", v: "3", alias: "turnoActual" }, { n: "segundoValor", v: "8", alias: "turnoSiguiente" }, { n: "valorTemporal", v: "3", chg: true }] }, note: "Se guarda el primer valor en una variable temporal." },
+    { mark: [[4, 4]], main: [{ n: "turnoActual", v: "8", chg: true }, { n: "turnoSiguiente", v: "8" }], fn: { t: "IntercambiarValores", vars: [{ n: "primerValor", v: "8", alias: "turnoActual", chg: true }, { n: "segundoValor", v: "8", alias: "turnoSiguiente" }, { n: "valorTemporal", v: "3" }] }, note: "primerValor recibe el segundo. El 3 solo sobrevive en la variable temporal." },
+    { mark: [[5, 5]], main: [{ n: "turnoActual", v: "8" }, { n: "turnoSiguiente", v: "3", chg: true }], fn: { t: "IntercambiarValores", vars: [{ n: "primerValor", v: "8", alias: "turnoActual" }, { n: "segundoValor", v: "3", alias: "turnoSiguiente", chg: true }, { n: "valorTemporal", v: "3" }] }, note: "segundoValor recibe el valor guardado." },
+    { mark: [[6, 6]], main: [{ n: "turnoActual", v: "8" }, { n: "turnoSiguiente", v: "3" }], note: "Intercambio completo: los originales quedaron con los valores cruzados." }]);
+
+  /* ---------- Slide 3: máquina de la función ---------- */
+  function machine() {
+    var p = num("#mPrecio"), d = num("#mDesc");
+    $("#mIn").textContent = p + "m, " + d + "m"; $("#mOut").textContent = fmt(p - p * d / 100) + "m";
+  }
+  $("#mPrecio").addEventListener("input", machine); $("#mDesc").addEventListener("input", machine); machine();
+
+  /* ---------- Slide 5: distintas funciones ---------- */
+  var FNS = [
+    { tab: "decimal", label: "monto", init: "10000", def: "static decimal CalcularIva(decimal monto)\n{\n    const decimal tasaIva = 0.21m;\n    return monto * tasaIva;\n}",
+      run: function (v) { var n = Number(v); if (v.trim() === "" || !isFinite(n)) return null; return ["CalcularIva(" + v.trim() + "m)", fmt(n * 0.21), "decimal"]; } },
+    { tab: "bool", label: "edad", init: "17", def: "static bool EsMayorDeEdad(int edad)\n{\n    return edad >= 18;\n}",
+      run: function (v) { var n = Number(v); if (v.trim() === "" || !Number.isInteger(n)) return null; return ["EsMayorDeEdad(" + n + ")", String(n >= 18), "bool"]; } },
+    { tab: "double", label: "notas (separadas por coma)", init: "7, 8, 9", def: "static double CalcularPromedio(int[] notas)\n{\n    int sumaNotas = 0;\n    for (int i = 0; i < notas.Length; i++)\n    {\n        sumaNotas += notas[i];\n    }\n    return (double)sumaNotas / notas.Length;\n}",
+      run: function (v) { var a = v.split(/[\s,;]+/).filter(Boolean).map(Number); if (!a.length || a.some(function (x) { return !Number.isInteger(x); })) return null;
+        return ["CalcularPromedio({" + a.join(", ") + "})", fmt(a.reduce(function (s, x) { return s + x; }, 0) / a.length), "double"]; } },
+    { tab: "string", label: "nombre", init: "Lucía", def: "static string ConstruirSaludo(string nombre)\n{\n    return \"Hola, \" + nombre + \"! Bienvenido al sistema.\";\n}",
+      run: function (v) { return ["ConstruirSaludo(\"" + v + "\")", "\"Hola, " + v + "! Bienvenido al sistema.\"", "string"]; } }
+  ];
+  var fnCur = 0;
+  segButtons("#fnTabs", FNS.map(function (f) { return f.tab; }), "i");
+  function fnShow() {
+    var f = FNS[fnCur], r = f.run($("#fnArg").value), o = $("#fnOut");
+    setSnip($("#fnCode"), f.def); o.innerHTML = "";
+    if (!r) { o.className = "out bad"; o.textContent = "Ingresá un valor válido para el tipo " + f.tab + "."; return; }
+    o.className = "out ok"; o.appendChild(el("p", "mono", r[0])); o.appendChild(el("p", "mono", "→ " + r[1] + "   (" + r[2] + ")"));
+  }
+  function fnPick(i) { fnCur = i; var f = FNS[i]; $("#fnArg").value = f.init; $("#fnArg").previousSibling.textContent = f.label; fnShow(); }
+  $("#fnArg").addEventListener("input", fnShow);
+  seg("#fnTabs", function (b) { fnPick(+b.dataset.i); }); fnPick(0);
+
+  /* ---------- Slide 6: función vs procedimiento ---------- */
+  var FP = {
+    f: { flow: [["entradas", "15000m, 20m", ""], ["función", "CalcularPrecioConDescuento", "fn"], ["return", "12000m", "out"]],
+      code: "decimal precioFinal = CalcularPrecioConDescuento(15000m, 20m);\n// el resultado se guarda y puede reutilizarse",
+      note: "Importa el dato obtenido. Se invoca dentro de una asignación o de una condición.", bad: null },
+    p: { flow: [["entradas", "\"Mouse\", 12000m, 3", ""], ["procedimiento", "MostrarDetalleProducto", "proc"], ["efecto", "Producto: Mouse | Precio: 12000 | Stock: 3", "out"]],
+      code: "MostrarDetalleProducto(\"Mouse\", 12000m, 3);\n// instrucción independiente: no se guarda nada",
+      note: "Importa el efecto producido. Su tipo de retorno es void, así que no devuelve valor.", bad: "var r = MostrarDetalleProducto(\"Mouse\", 12000m, 3);\n// error: un procedimiento void no devuelve ningún valor" }
+  };
+  function fpShow(k) {
+    var d = FP[k], fl = $("#fpFlow"); fl.innerHTML = "";
+    d.flow.forEach(function (n, i) {
+      if (i) { var a = el("span", "arrow", "→"); a.setAttribute("aria-hidden", "true"); fl.appendChild(a); }
+      var nd = el("div", "node " + n[2]); nd.appendChild(el("small", "", n[0])); nd.appendChild(document.createTextNode(n[1])); fl.appendChild(nd);
+    });
+    setSnip($("#fpCode"), d.code); $("#fpNote").textContent = d.note;
+    var bad = $("#fpBad"); bad.hidden = !d.bad; if (d.bad) setSnip(bad, d.bad);
+  }
+  fpShow("f"); seg("#fpTabs", function (b) { fpShow(b.dataset.k); });
+
+  /* ---------- Slide 7: retorno anticipado ---------- */
+  $("#alForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var n = $("#alNom").value.trim().replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ0-9 ]/g, "") || "Producto", s = Math.trunc(num("#alStock")), m = Math.trunc(num("#alMin")), log = $("#alLog");
+    var call = "MostrarAlertaStock(\"" + n + "\", " + s + ", " + m + ");";
+    log.appendChild(el("div", "m", "> " + call));
+    if (s > m) { views.alerta.mark([[3, 5]]); log.appendChild(el("div", "g", "(return anticipado: no se muestra nada)")); }
+    else { views.alerta.mark([[3, 3], [8, 8]]); log.appendChild(el("div", "e", "Alerta: " + n + " tiene stock bajo (" + s + ").")); }
+    log.scrollTop = log.scrollHeight;
+  });
+  $("#alLog").appendChild(el("div", "m", "Completá los datos y tocá Invocar."));
+
+  /* ---------- Slide 8: clasificador ---------- */
+  var TASKS = [["Calcular el IVA de un monto", "f", "Interesa el valor calculado."], ["Mostrar el menú principal", "p", "Interesa el efecto: escribir en pantalla."], ["Saber si un cliente es mayor de edad", "f", "Interesa un dato: verdadero o falso."],
+    ["Imprimir el detalle de un producto", "p", "Interesa el efecto: mostrar información."], ["Obtener el promedio de unas notas", "f", "Interesa el número resultante."], ["Aplicar un aumento a una lista de precios", "p", "Interesa el efecto: modificar el estado."]];
+  var done = 0, good = 0;
+  TASKS.forEach(function (t) {
+    var row = el("div", "task"), txt = el("span", "", t[0]), seg2 = el("div", "seg"), fb = el("div", "fb");
+    fb.setAttribute("aria-live", "polite");
+    [["Función", "f"], ["Procedimiento", "p"]].forEach(function (o) {
+      var b = el("button", "", o[0]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        if (row.dataset.done) return; row.dataset.done = 1; done++;
+        var ok = o[1] === t[1]; if (ok) good++;
+        b.setAttribute("aria-pressed", "true"); row.className = "task " + (ok ? "okk" : "nok");
+        fb.textContent = (ok ? "Correcto. " : "Es " + (t[1] === "f" ? "una función" : "un procedimiento") + ". ") + t[2];
+        $("#taskScore").className = "out " + (done === TASKS.length ? "ok" : ""); $("#taskScore").textContent = "Aciertos: " + good + " de " + done + (done === TASKS.length ? ". ¡Completo!" : ".");
+      }); seg2.appendChild(b);
+    });
+    row.appendChild(txt); row.appendChild(seg2); row.appendChild(fb); $("#tasks").appendChild(row);
+  });
+  $("#taskScore").textContent = "Elegí una opción para cada tarea.";
+
+  /* ---------- Slide 9: parámetro y argumento ---------- */
+  var PA = { n: 0 };
+  function paDraw() {
+    var s = num("#paSub"), d = num("#paDesc"), iva = $("#paIva").checked;
+    var a1 = s + "m", a2 = d + "m", a3 = String(iva);
+    var call = PA.n ? "CalcularTotalFactura(\n    subtotal: " + a1 + ",\n    porcentajeDescuento: " + a2 + ",\n    incluyeIva: " + a3 + ");" : "CalcularTotalFactura(" + a1 + ", " + a2 + ", " + a3 + ");";
+    setSnip($("#paCall"), call);
+    var tb = $("#paMap"); tb.innerHTML = "";
+    [["subtotal", a1], ["porcentajeDescuento", a2], ["incluyeIva", a3]].forEach(function (r) { var tr = el("tr"); tr.appendChild(el("td", "", r[0])); tr.appendChild(el("td", "", r[1])); tb.appendChild(tr); });
+    var t = s - s * d / 100; if (iva) t += t * 0.21;
+    var o = $("#paOut"); o.className = "out ok"; o.textContent = "Total: " + fmt(Math.round(t * 100) / 100);
+  }
+  ["#paSub", "#paDesc", "#paIva"].forEach(function (id) { $(id).addEventListener("input", paDraw); });
+  seg("#paTabs", function (b) { PA.n = +b.dataset.n; paDraw(); }); paDraw();
+
+  /* ---------- Slide 10 y 17: errores ---------- */
+  errTabs("ae", [
+    { bad: "CalcularTotalFactura(15m, 20000m, true);\n// compila, pero el resultado no tiene sentido", good: "CalcularTotalFactura(20000m, 15m, true);", t: "Los argumentos se asignan por posición. Con 15 como subtotal y 20000 como descuento el total es negativo. Los argumentos con nombre evitan el problema." },
+    { bad: "CalcularTotalFactura(20000m, 15m, \"si\");\n// error CS1503: no se puede convertir string a bool", good: "CalcularTotalFactura(20000m, 15m, true);", t: "Cada argumento debe tener un tipo compatible con su parámetro. El compilador lo detecta antes de ejecutar." },
+    { bad: "CalcularTotalFactura(20000m, 15m);\n// error CS7036: falta el argumento incluyeIva", good: "CalcularTotalFactura(20000m, 15m, true);", t: "Hay que entregar un argumento por cada parámetro, salvo que tenga un valor por defecto." }]);
+  errTabs("re", [
+    { bad: "AplicarInteres(saldoCuenta, 5m);\n// error CS1620: falta ref en la invocación", good: "AplicarInteres(ref saldoCuenta, 5m);", t: "ref es obligatorio también al invocar. Deja a la vista de quien lee que el dato puede cambiar." },
+    { bad: "AplicarInteres(ref 10000m, 5m);\n// error CS1510: un literal no es una variable", good: "decimal saldoCuenta = 10000m;\nAplicarInteres(ref saldoCuenta, 5m);", t: "ref necesita una variable, porque el procedimiento va a modificarla." },
+    { bad: "static void Intercambiar(int a, int b)\n{\n    int t = a; a = b; b = t;\n}\n// por valor: solo se intercambian las copias", good: "static void Intercambiar(ref int a, ref int b)\n{\n    int t = a; a = b; b = t;\n}", t: "Sin ref los cambios quedan en las copias y los originales no se alteran." }]);
+
+  /* ---------- Slide 12: por valor, probalo ---------- */
+  var PV = { k: "p" };
+  function pvDraw() {
+    var p = num("#pvP"), d = num("#pvD"), res = p - p * d / 100, sc = $("#pvScopes"); sc.innerHTML = "";
+    if (PV.k === "p") {
+      sc.appendChild(scope("Main", [{ n: "precioProducto", v: fmt(p) }]));
+      sc.appendChild(scope("AplicarDescuentoEnCaja", [{ n: "precio", v: fmt(res), chg: true, note: "copia" }]));
+      setSnip($("#pvCode"), "static void AplicarDescuentoEnCaja(decimal precio, decimal descuento)\n{\n    precio -= precio * descuento / 100;   // modifica la copia\n}\n\nAplicarDescuentoEnCaja(precioProducto, " + d + "m);\n// precioProducto sigue valiendo " + fmt(p));
+      $("#pvNote").textContent = "El procedimiento cambió su copia; el precio original no se vio afectado.";
+    } else {
+      sc.appendChild(scope("Main", [{ n: "precioProducto", v: fmt(p) }, { n: "precioFinal", v: fmt(res), chg: true }]));
+      sc.appendChild(scope("CalcularPrecioFinal", [{ n: "precio", v: fmt(res), note: "copia (se descarta)" }]));
+      setSnip($("#pvCode"), "static decimal CalcularPrecioFinal(decimal precio, decimal descuento)\n{\n    precio -= precio * descuento / 100;\n    return precio;\n}\n\ndecimal precioFinal = CalcularPrecioFinal(precioProducto, " + d + "m);\n// precioProducto sigue valiendo " + fmt(p));
+      $("#pvNote").textContent = "Para obtener el resultado hay que devolverlo y guardarlo. El original se mantiene.";
+    }
+  }
+  ["#pvP", "#pvD"].forEach(function (id) { $(id).addEventListener("input", pvDraw); });
+  seg("#pvTabs", function (b) { PV.k = b.dataset.k; pvDraw(); }); pvDraw();
+
+  /* ---------- Slide 14: comparador ---------- */
+  function cmp() { var s = num("#cmpS"), i = num("#cmpI"); $("#cmpV").textContent = "saldoCuenta = " + fmt(s); $("#cmpR").textContent = "saldoCuenta = " + fmt(Math.round(s * (1 + i / 100) * 100) / 100); }
+  $("#cmpS").addEventListener("input", cmp); $("#cmpI").addEventListener("input", cmp); cmp();
+
+  /* ---------- Slide 15: transferencia ---------- */
+  var TR = { o: 50000, d: 20000 };
+  function trDraw() {
+    var sc = $("#trScopes"); sc.innerHTML = "";
+    sc.appendChild(scope("Cuenta corriente", [{ n: "saldoCuentaCorriente", v: fmt(TR.o) }])); sc.appendChild(scope("Caja de ahorro", [{ n: "saldoCajaAhorro", v: fmt(TR.d) }]));
+  }
+  $("#trGo").addEventListener("click", function () {
+    var m = Math.max(0, num("#trMonto")), log = $("#trLog");
+    log.appendChild(el("div", "m", "> RealizarTransferencia(ref saldoCuentaCorriente, ref saldoCajaAhorro, " + m + "m);"));
+    if (m > TR.o) { views.transf.mark([[3, 6]]); log.appendChild(el("div", "e", "Transferencia rechazada. Los saldos no cambian.")); }
+    else { TR.o -= m; TR.d += m; views.transf.mark([[9, 10]]); log.appendChild(el("div", "g", "Listo: ambos saldos se actualizaron.")); }
+    log.scrollTop = log.scrollHeight; trDraw();
+  });
+  $("#trReset").addEventListener("click", function () { TR = { o: 50000, d: 20000 }; $("#trLog").innerHTML = ""; views.transf.mark([]); trDraw(); });
+  trDraw();
+
+  /* ---------- Navegación ---------- */
+  var slides = $$(".slide"), idx = 0, stage = $("#stage");
+  function show(i, fromHash) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, j) { s.hidden = j !== idx; });
+    var t = slides[idx].dataset.title;
+    $("#ctitle").textContent = t; $("#cnum").textContent = (idx + 1) + " / " + slides.length;
+    $("#fill").style.width = ((idx + 1) / slides.length * 100) + "%";
+    var tr = $("#track"); tr.setAttribute("aria-valuemax", slides.length); tr.setAttribute("aria-valuenow", idx + 1);
+    $("#prev").disabled = idx === 0; $("#next").disabled = idx === slides.length - 1;
+    $("#announce").textContent = "Diapositiva " + (idx + 1) + " de " + slides.length + ": " + t;
+    stage.scrollTop = 0;
+    if (!fromHash) { try { history.replaceState(null, "", "#s" + (idx + 1)); } catch (e) { try { location.hash = "s" + (idx + 1); } catch (e2) {} } }
+    store("fn-slide", String(idx));
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g) show(+g.dataset.go - 1); });
+  $("#prev").addEventListener("click", function () { show(idx - 1); });
+  $("#next").addEventListener("click", function () { show(idx + 1); });
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+    else if (e.key === "Home") { e.preventDefault(); show(0); }
+    else if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
+    else if (e.key === "f" || e.key === "F") { fs(); }
+  });
+  function fs() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+  $("#fsBtn").addEventListener("click", fs);
+  $("#themeBtn").addEventListener("click", function () {
+    var r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark ? "light" : "dark"; store("fn-theme", r.dataset.theme);
+  });
+  var th = store("fn-theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th;
+
+  var m = /^#s(\d+)$/.exec(location.hash), start = m ? +m[1] - 1 : 0;
+  show(start, true);
+  window.addEventListener("hashchange", function () { var h = /^#s(\d+)$/.exec(location.hash); if (h) show(+h[1] - 1, true); });
+})();
+</script>
+</body>
+</html>
