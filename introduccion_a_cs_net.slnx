@@ -1,5 +1,4 @@
 <Solution>
-  <Folder Name="/Elementos de la solución/" />
   <Folder Name="/M1/">
     <Project Path="m1/M1_01_QueEsDotNet/M1_01_QueEsDotNet.csproj" Id="986f2270-ba5f-46ce-80f2-315df5387977" />
     <Project Path="m1/M1_02a_ConsoleApp1/M1_02a_ConsoleApp1.csproj" />
