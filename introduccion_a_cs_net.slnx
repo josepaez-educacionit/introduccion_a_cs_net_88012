@@ -34,5 +34,11 @@
   </Folder>
   <Folder Name="/M4/">
     <Project Path="m4/M4_01_ArreglosMultidimensionales/M4_01_ArreglosMultidimensionales.csproj" />
+    <Project Path="m4/M4_02_Funciones/M4_02_Funciones.csproj" />
+    <Project Path="m4/M4_03_Procedimientos/M4_03_Procedimientos.csproj" />
+    <Project Path="m4/M4_04_Parametros.cs/M4_04_Parametros.cs.csproj" />
+    <Project Path="m4/M4_05_ParametrosPorValor/M4_05_ParametrosPorValor.csproj" />
+    <Project Path="m4/M4_06_ParametrosPorReferencia/M4_06_ParametrosPorReferencia.csproj" />
+    <Project Path="m4/M4_07_ProgramacionOrientadaObjetos/M4_07_ProgramacionOrientadaObjetos.csproj" />
   </Folder>
 </Solution>
