@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Propinas.Consola/Propinas.Consola.csproj" />
+  <Project Path="Propinas.Core/Propinas.Core.csproj" />
+  <Project Path="Propinas.Visual/Propinas.Visual.csproj" />
+  <Project Path="Propinas.VisualWeb/Propinas.VisualWeb.csproj" />
+</Solution>

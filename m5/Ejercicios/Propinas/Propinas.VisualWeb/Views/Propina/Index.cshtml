@@ -1,0 +1,56 @@
+﻿@using Propinas.Core
+@model PropinaViewModel
+
+@{
+    ViewData["Title"] = "Calculadora de propina";
+
+    DetallePropina? detalle = Model.Detalle;
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <h1 class="h3 mb-1">Calculadora de propina</h1>
+        <p class="text-muted">Ingrese el monto de la cuenta y elija el porcentaje de propina.</p>
+
+        @* asp-controller y asp-action indican a qué acción del controlador se envía el formulario. *@
+        <form method="post" asp-controller="Propina" asp-action="Index" novalidate>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Monto" class="form-control" placeholder="0,00" inputmode="decimal"
+                       autocomplete="off" autofocus />
+                <label asp-for="Monto"></label>
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Porcentaje" class="form-control" placeholder="10" inputmode="decimal"
+                       autocomplete="off" />
+                <label asp-for="Porcentaje"></label>
+                <span asp-validation-for="Porcentaje" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Calcular</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
+
+        @if (detalle != null)
+        {
+            <section class="card mt-4" aria-live="polite" aria-label="Resultado">
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-7 fw-normal">Cuenta</dt>
+                        <dd class="col-5 text-end">@detalle.Monto.ToString("C")</dd>
+
+                        <dt class="col-7 fw-normal">Propina (@((detalle.Porcentaje * 100).ToString("0.##")) %)</dt>
+                        <dd class="col-5 text-end">@detalle.Propina.ToString("C")</dd>
+
+                        <dt class="col-7 fs-5">Total a pagar</dt>
+                        <dd class="col-5 text-end fs-5 fw-bold mb-0">@detalle.Total.ToString("C")</dd>
+                    </dl>
+                </div>
+            </section>
+        }
+    </div>
+</div>
