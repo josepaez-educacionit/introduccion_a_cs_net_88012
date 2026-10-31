@@ -40,4 +40,9 @@
     <Project Path="m4/M4_06_ParametrosPorReferencia/M4_06_ParametrosPorReferencia.csproj" />
     <Project Path="m4/M4_07_ProgramacionOrientadaObjetos/M4_07_ProgramacionOrientadaObjetos.csproj" />
   </Folder>
+  <Folder Name="/M5/">
+    <Project Path="m5/02_OtrosTiposDeDatos/02_OtrosTiposDeDatos.csproj" Id="0671de19-e86d-4cf0-acc8-b7aaf3ac43af" />
+    <Project Path="m5/03_Estructuras/03_Estructuras.csproj" Id="0296fff0-d4c8-47c8-b8bd-3b2fd6fa3ed2" />
+    <Project Path="m5/04_Enumeraciones/04_Enumeraciones.csproj" Id="a3edc42e-158b-4093-bf2a-e7593a3ea30a" />
+  </Folder>
 </Solution>
