@@ -1,4 +1,29 @@
-﻿namespace _04_Enumeraciones
+﻿/*
+4. Enumeraciones.
+
+Una enumeración es un tipo de dato que permite definir un conjunto de valores con nombre,
+limitado y conocido de antemano, que representan las distintas opciones posibles para una
+determinada situación dentro de un programa.
+
+En lugar de utilizar números o textos sueltos para representar esas opciones, una enumeración
+asigna un nombre descriptivo a cada uno de los valores posibles, haciendo que el código
+resulte más claro y fácil de entender, ya que se hace referencia a las opciones por su
+significado y no por un valor numérico sin contexto.
+
+Internamente, cada uno de los valores definidos en una enumeración está asociado a un número
+entero, aunque en la mayoría de los casos el programador trabaja directamente con los nombres
+definidos, sin necesidad de preocuparse por esos valores numéricos subyacentes.
+
+Utilizar enumeraciones resulta especialmente útil cuando una variable solo puede tomar un
+número limitado de valores predefinidos, como los días de la semana, los estados posibles de
+un pedido o las categorías disponibles para un determinado elemento.
+
+En resumen, una enumeración permite definir un conjunto cerrado de valores con nombre,
+facilitando que el código represente de forma clara las distintas opciones válidas para una
+situación determinada.
+*/
+
+namespace _04_Enumeraciones
 {
     internal class Program
     {
@@ -70,6 +95,7 @@
                     _ => "Estado desconocido."
                 };
             */
+
         }
     }
 }
