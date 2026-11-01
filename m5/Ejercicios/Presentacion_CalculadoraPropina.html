@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Calculadora de propina en C# y .NET</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,800;110,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Concepto: la tabla como plano cuadriculado. Misma identidad visual que las presentaciones del módulo 4.
+   Papel técnico con cuadrícula, tinta azul de delineante y un lápiz verde lima para resaltar. */
+:root {
+  --bg: #f4f5fc;
+  --panel: #ffffff;
+  --fg: #15163f;
+  --muted: #4d5079;
+  --line: #d6d9ee;
+  --ink: #2a4bdc;
+  --ink-soft: #e5e9fd;
+  --accent: #c8f20d;
+  --accent-fg: #15163f;
+  --ok: #12701f;
+  --ok-soft: #e6f8d2;
+  --bad: #c0261f;
+  --bad-soft: #fbe6e4;
+  --code-bg: #15163f;
+  --code-fg: #e8eaff;
+  --code-line: #26296a;
+  --code-hl: #2d3aa3;
+  --tk-k: #94a9ff;
+  --tk-t: #b4f23a;
+  --tk-s: #ffd36e;
+  --tk-c: #9296cc;
+  --tk-n: #ff9d8a;
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+    --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+    --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+    --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12133a; --panel: #1c1e55; --fg: #f2f3ff; --muted: #b3b6e2; --line: #35387f;
+  --ink: #8ea6ff; --ink-soft: #272b73; --accent: #c8f20d; --accent-fg: #15163f;
+  --ok: #86f23b; --ok-soft: #1b3a27; --bad: #ff8a82; --bad-soft: #43203a;
+  --code-bg: #0c0d2b; --code-fg: #e8eaff; --code-line: #1f2260; --code-hl: #2d3aa3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 38%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+.bar {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-stretch: 110%; letter-spacing: .02em; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.brand b { color: var(--ink); }
+.tools { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); font-size: .85rem; font-weight: 500;
+}
+.icon-btn:hover { border-color: var(--ink); }
+
+.stage {
+  overflow-y: auto; overflow-x: hidden; min-height: 0;
+  padding-block: clamp(16px, 3vh, 36px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: clamp(16px, 1.25vw + 6px, 20px);
+}
+.slide { max-width: 1180px; margin: 0 auto; display: grid; gap: clamp(14px, 2.2vh, 26px); animation: enter .35s ease both; }
+.slide[hidden] { display: none; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } * { transition: none !important; } }
+
+.eyebrow { margin: 0; font-family: var(--font-mono); font-size: .72em; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
+h1, h2, h3 { font-family: var(--font-display); font-stretch: 105%; font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.7rem); }
+h3 { font-size: 1.15em; line-height: 1.2; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 1.1em; color: var(--muted); }
+.hl-text { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 55%, transparent) 62%); }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+p code, li code, td code { background: var(--ink-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); align-items: start; }
+.cols.wide-left { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
+@media (max-width: 860px) { .cols, .cols.wide-left { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: grid; gap: 12px; min-width: 0; }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card.key { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
+.card h3 { margin-bottom: 6px; }
+.card p { color: var(--muted); font-size: .92em; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: .68em; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--ink-soft); color: var(--ink); margin-bottom: 8px; }
+.tag.now { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* Controles */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .btn {
+  min-height: 40px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 500; font-size: .88em;
+}
+.seg button:hover, .btn:hover { border-color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+label.field { display: grid; gap: 4px; font-size: .8em; color: var(--muted); font-weight: 500; }
+input[type="text"], input[type="number"] {
+  min-height: 40px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font: inherit; width: 100%; min-width: 0;
+}
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+
+/* Código */
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
+.code-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 6px 14px; font-family: var(--font-mono); font-size: .7em; color: var(--tk-c); border-bottom: 1px solid var(--code-line); }
+.code-head button { background: transparent; border: 1px solid var(--code-line); color: var(--code-fg); border-radius: 6px; padding: 2px 10px; font-size: 1em; min-height: 28px; }
+.code-body { overflow-x: auto; padding: 10px 0; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; }
+.ln { display: flex; white-space: pre; padding-right: 16px; }
+.ln i { flex: 0 0 2.6em; text-align: right; padding-right: 1em; color: var(--tk-c); font-style: normal; user-select: none; opacity: .7; }
+.ln.on { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent); }
+.k { color: var(--tk-k); } .t { color: var(--tk-t); } .s { color: var(--tk-s); } .c { color: var(--tk-c); font-style: italic; } .n { color: var(--tk-n); }
+pre.snip { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 12px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: clamp(.74rem, .55vw + .55rem, .95rem); line-height: 1.6; border: 1px solid var(--line); }
+pre.snip.bad { box-shadow: inset 4px 0 0 var(--bad); }
+pre.snip.good { box-shadow: inset 4px 0 0 var(--ok); }
+
+.notes { display: grid; gap: 6px; }
+.note { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 12px; min-height: 40px; font-size: .88em; font-weight: 500; }
+.note[aria-pressed="true"] { border-color: var(--ink); background: var(--ink-soft); }
+.explain { background: var(--ink-soft); border-radius: 8px; padding: 10px 14px; font-size: .9em; min-height: 3.6em; }
+
+.out { border-radius: 10px; padding: 12px 14px; border: 1px solid var(--line); background: var(--panel); font-size: .92em; min-height: 4.2em; }
+.out.ok { background: var(--ok-soft); border-color: var(--ok); }
+.out.bad { background: var(--bad-soft); border-color: var(--bad); }
+.out p + p { margin-top: 4px; }
+
+.log { font-family: var(--font-mono); font-size: .8em; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 10px 14px; min-height: 9em; max-height: 15em; overflow: auto; display: flex; flex-direction: column; gap: 3px; white-space: pre-wrap; }
+.log .e { color: var(--tk-n); } .log .g { color: var(--tk-t); } .log .m { color: var(--tk-c); }
+
+table { border-collapse: collapse; width: 100%; font-size: .88em; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .75em; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.scroll-x { overflow-x: auto; }
+.tbl2 td:first-child { font-family: var(--font-mono); }
+
+.illus { width: 100%; height: auto; max-height: 46vh; }
+.illus text { font-family: var(--font-mono); font-size: 13px; fill: var(--fg); }
+.illus .muted { fill: var(--muted); }
+.illus .stroke { fill: none; stroke: var(--ink); stroke-width: 2; }
+
+/* Flujos */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.flow .arrow { font-size: 1.5em; color: var(--ink); font-weight: 700; }
+.node { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 10px 14px; font-family: var(--font-mono); font-size: .82em; min-width: 0; overflow-wrap: anywhere; }
+.node small { display: block; color: var(--muted); font-size: .78em; margin-bottom: 2px; }
+.node.fn { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.node.fn small { color: var(--panel); opacity: .8; }
+.node.out { border-color: var(--ok); background: var(--ok-soft); }
+.node.active { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent); }
+.node.active small { color: var(--accent-fg); }
+.zone { border: 2px dashed var(--line); border-radius: 12px; padding: 10px 12px 12px; display: grid; gap: 8px; background: color-mix(in srgb, var(--panel) 60%, transparent); min-width: 0; }
+.zone h4 { margin: 0; font: 500 .72em var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.zones { display: grid; grid-template-columns: minmax(130px, .5fr) minmax(0, 2.5fr); gap: 12px; align-items: stretch; }
+@media (max-width: 760px) { .zones { grid-template-columns: minmax(0, 1fr); } }
+.wire { font-family: var(--font-mono); font-size: .85em; padding: 8px 12px; border-radius: 8px; background: var(--code-bg); color: var(--tk-t); min-height: 2.4em; overflow-wrap: anywhere; }
+.bigval { font-family: var(--font-mono); font-size: 1.45em; font-weight: 700; color: var(--ink); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; font-family: var(--font-mono); font-size: .9em; }
+.kv b { text-align: right; }
+.kv .tot { border-top: 1px solid var(--line); padding-top: 4px; font-size: 1.1em; }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+
+/* Ejercicio de clasificación */
+.task { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.task .fb { grid-column: 1 / -1; font-size: .85em; }
+.task.okk { border-color: var(--ok); background: var(--ok-soft); }
+.task.nok { border-color: var(--bad); background: var(--bad-soft); }
+@media (max-width: 760px) { .task { grid-template-columns: 1fr; } }
+
+/* Navegación */
+.foot {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  padding-top: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 4px solid var(--accent); background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+.progress { display: grid; gap: 4px; min-width: 0; }
+.track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--ink); transition: width .3s ease; }
+.counter { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.counter span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-btn { min-width: 48px; height: 44px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); font-weight: 600; padding: 0 16px; }
+.nav-btn.alt { background: var(--panel); color: var(--ink); }
+.nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+.agenda { display: grid; gap: 10px; }
+.agenda button { display: grid; grid-template-columns: 3.2em 1fr; gap: 6px; align-items: baseline; text-align: left; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.agenda button:hover { border-color: var(--ink); }
+.agenda .pn { font-family: var(--font-mono); color: var(--ink); font-weight: 700; font-size: .85em; }
+.agenda small { display: block; color: var(--muted); font-size: .8em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="bar">
+    <div class="brand">CALCULADORA DE PROPINA <b>/</b> MÓDULO 5</div>
+    <div class="tools">
+      <button class="icon-btn" data-go="2" aria-label="Ir al índice">Índice</button>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+      <button class="icon-btn" id="fsBtn" aria-label="Pantalla completa">Pantalla completa</button>
+    </div>
+  </div>
+
+  <main class="stage" id="stage" tabindex="-1">
+
+    <!-- 1. Portada -->
+    <section class="slide" data-title="Portada">
+      <div class="cols" style="align-items:center">
+        <div style="display:grid;gap:16px">
+          <p class="eyebrow">Introducción a C# y .NET · Módulo 5</p>
+          <h1 style="font-size:clamp(2rem,4.2vw,3.3rem)">Calculadora de <span class="hl-text">propina</span>: una lógica, tres pantallas</h1>
+          <p class="lead">Una misma clase resuelve el cálculo en la consola, en Windows Forms y en la web. Y al final, cómo viaja una solicitud en una aplicación MVC.</p>
+          <div class="row"><button class="btn primary" data-go="3">Comenzar</button><button class="btn" data-go="2">Ver el índice</button></div>
+        </div>
+        <svg class="illus" viewBox="0 0 520 300" role="img" aria-label="Tres pantallas, consola, Windows Forms y web, apoyadas sobre un único proyecto Core con la calculadora de propina">
+          <g text-anchor="middle">
+            <rect x="14" y="30" width="150" height="86" rx="10" fill="var(--code-bg)" stroke="var(--ink)" stroke-width="2"/>
+            <text x="89" y="62" style="fill:var(--tk-t)" font-size="12">&gt; Total: $ 1.100</text>
+            <text x="89" y="96" class="muted" font-size="12">Consola</text>
+            <rect x="185" y="30" width="150" height="86" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+            <rect x="185" y="30" width="150" height="20" rx="10" fill="var(--ink)"/><rect x="185" y="40" width="150" height="10" fill="var(--ink)"/>
+            <rect x="203" y="62" width="70" height="14" rx="3" fill="var(--ink-soft)"/><rect x="283" y="62" width="36" height="14" rx="3" fill="var(--accent)"/>
+            <text x="260" y="104" class="muted" font-size="12">Windows Forms</text>
+            <rect x="356" y="30" width="150" height="86" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+            <rect x="372" y="44" width="118" height="14" rx="7" fill="var(--ink-soft)"/>
+            <rect x="372" y="66" width="80" height="12" rx="3" fill="var(--ink-soft)"/><rect x="372" y="84" width="46" height="12" rx="3" fill="var(--accent)"/>
+            <text x="431" y="109" class="muted" font-size="12">Web MVC</text>
+            <path class="stroke" d="M89 118 V160 M260 118 V160 M431 118 V160"/>
+            <path class="stroke" d="M82 152 L89 162 L96 152 M253 152 L260 162 L267 152 M424 152 L431 162 L438 152"/>
+            <rect x="14" y="164" width="492" height="116" rx="12" fill="var(--ink)"/>
+            <text x="260" y="196" style="fill:var(--panel);font-weight:700" font-size="15">Propinas.Core</text>
+            <rect x="46" y="212" width="204" height="44" rx="8" fill="var(--panel)"/><text x="148" y="239" style="fill:var(--fg)" font-size="12">CalculadoraPropina</text>
+            <rect x="270" y="212" width="204" height="44" rx="8" fill="var(--accent)"/><text x="372" y="239" style="fill:var(--accent-fg)" font-size="12">DetallePropina</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2. Índice -->
+    <section class="slide" data-title="Índice">
+      <header><p class="eyebrow">Recorrido</p><h2>Seis partes, del cálculo a la web</h2></header>
+      <div class="agenda cols" style="align-items:stretch">
+        <button data-go="3"><span class="pn">P1</span><span>El problema y la solución<small>Qué se calcula, qué se aprende y cómo se organiza la solución</small></span></button>
+        <button data-go="6"><span class="pn">P2</span><span>Propinas.Core<small>La lógica compartida: DetallePropina y CalculadoraPropina</small></span></button>
+        <button data-go="10"><span class="pn">P3</span><span>Consola<small>Entrada de texto y validación con bucles</small></span></button>
+        <button data-go="11"><span class="pn">P4</span><span>Windows Forms<small>Eventos y controles numéricos</small></span></button>
+        <button data-go="12"><span class="pn">P5</span><span>Web MVC<small>Cómo funciona una aplicación, del frontend al backend</small></span></button>
+        <button data-go="19"><span class="pn">P6</span><span>Comparación y práctica<small>Comparación, conceptos clave y cómo ejecutar</small></span></button>
+      </div>
+    </section>
+
+    <!-- 3. De qué se trata -->
+    <section class="slide" data-title="¿De qué se trata?">
+      <header><p class="eyebrow">Parte 1 · El problema</p><h2>Una cuenta, un porcentaje, una propina</h2></header>
+      <p class="lead">El usuario ingresa el monto de la cuenta y el porcentaje de propina; el programa muestra la propina y el total a pagar. Lo importante no es el cálculo, sino cómo se organiza el código.</p>
+      <div class="seg" id="pbEx" role="group" aria-label="Ejemplos de la guía">
+        <button type="button" aria-pressed="true" data-m="1000" data-p="10">Ejemplo 1</button>
+        <button type="button" aria-pressed="false" data-m="85.5" data-p="15">Ejemplo 2</button>
+      </div>
+      <div class="cols">
+        <div class="stack">
+          <div class="row">
+            <label class="field" style="flex:1 1 130px">Monto de la cuenta<input type="number" id="pbMonto" value="1000" min="0" step="0.5"></label>
+            <label class="field" style="flex:1 1 130px">Porcentaje (0 a 100)<input type="number" id="pbPct" value="10" min="0" max="100" step="1"></label>
+          </div>
+          <div class="card key" aria-live="polite"><div class="kv" id="pbKv"></div></div>
+          <div class="explain" id="pbNote" aria-live="polite"></div>
+        </div>
+        <pre class="snip" id="pbCode"></pre>
+      </div>
+    </section>
+
+    <!-- 3b. Qué vas a aprender -->
+    <section class="slide" data-title="Qué vas a aprender">
+      <header><p class="eyebrow">Parte 1 · Objetivos</p><h2>Cuatro ideas para llevarte</h2></header>
+      <p class="lead">Vas a ver el mismo cálculo funcionando en tres tipos de aplicación distintos, sin repetir la lógica.</p>
+      <div class="grid3">
+        <div class="card key"><span class="tag now">1</span><h3>Separar responsabilidades</h3><p>Las reglas del cálculo (lógica) por un lado y lo que ve y usa la persona (interfaz) por otro.</p></div>
+        <div class="card"><span class="tag now">2</span><h3>Clases reutilizables</h3><p>Cómo una clase agrupa datos y comportamiento, y cómo usarla en varios proyectos.</p></div>
+        <div class="card"><span class="tag now">3</span><h3>Tres interfaces</h3><p>Cómo se construye una de consola, una de escritorio y una web, y en qué se parecen y se diferencian.</p></div>
+        <div class="card"><span class="tag now">4</span><h3>Buenas prácticas</h3><p>Validar los datos, usar nombres claros y organizar el código por responsabilidades.</p></div>
+      </div>
+    </section>
+
+    <!-- 4. Arquitectura -->
+    <section class="slide" data-title="Arquitectura de la solución">
+      <header><p class="eyebrow">Parte 1 · La solución</p><h2>Cuatro proyectos, una sola lógica</h2></header>
+      <p class="lead">Una solución (<code>Propinas.sln</code>) agrupa proyectos relacionados. Los tres de interfaz tienen una referencia a <code>Propinas.Core</code>, y eso les permite escribir <code>using Propinas.Core;</code>. Tocá un proyecto.</p>
+      <div class="flow" style="align-items:stretch">
+        <div class="seg" id="arTabs" role="group" aria-label="Proyecto"></div>
+      </div>
+      <div class="cols wide-left">
+        <div class="stack">
+          <svg class="illus" viewBox="0 0 560 250" role="img" aria-label="Los proyectos Consola, Visual y VisualWeb dependen del proyecto Core" id="arSvg">
+            <g text-anchor="middle">
+              <rect id="arB0" x="10" y="20" width="160" height="60" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="90" y="56">Propinas.Consola</text>
+              <rect id="arB1" x="200" y="20" width="160" height="60" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="280" y="56">Propinas.Visual</text>
+              <rect id="arB2" x="390" y="20" width="160" height="60" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="470" y="56">Propinas.VisualWeb</text>
+              <path class="stroke" d="M90 82 V150 M280 82 V150 M470 82 V150"/>
+              <path class="stroke" d="M83 142 L90 152 L97 142 M273 142 L280 152 L287 142 M463 142 L470 152 L477 142"/>
+              <text x="140" y="124" class="muted" font-size="11">referencia</text>
+              <rect id="arB3" x="10" y="156" width="540" height="76" rx="12" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+              <text x="280" y="190" style="font-weight:700">Propinas.Core</text><text x="280" y="212" class="muted" font-size="11">CalculadoraPropina · DetallePropina</text>
+            </g>
+          </svg>
+          <pre class="snip" id="arTree"></pre>
+        </div>
+        <div class="stack"><div class="explain" id="arNote" aria-live="polite"></div><pre class="snip" id="arCode"></pre></div>
+      </div>
+    </section>
+
+    <!-- 5. DetallePropina -->
+    <section class="slide" data-title="Core: DetallePropina">
+      <header><p class="eyebrow">Parte 2 · Propinas.Core</p><h2>DetallePropina agrupa los cuatro resultados</h2></header>
+      <p class="lead">Un método devuelve un solo valor. Para entregar monto, porcentaje, propina y total, se agrupan en un objeto.</p>
+      <div class="codeview" data-code="detalle"></div>
+    </section>
+
+    <!-- 6. CalculadoraPropina -->
+    <section class="slide" data-title="Core: CalculadoraPropina">
+      <header><p class="eyebrow">Parte 2 · Propinas.Core</p><h2>CalculadoraPropina concentra las reglas</h2></header>
+      <div class="codeview" data-code="calc"></div>
+    </section>
+
+    <!-- 7. Probá el Core -->
+    <section class="slide" data-title="Core: probalo">
+      <header><p class="eyebrow">Parte 2 · Propinas.Core</p><h2>Invocá la calculadora y mirá qué responde</h2></header>
+      <div class="cols">
+        <div class="stack">
+          <div class="row">
+            <label class="field" style="flex:1 1 130px">porcentaje (0 a 1)<input type="text" id="coPct" value="0,15" autocomplete="off" inputmode="decimal"></label>
+            <label class="field" style="flex:1 1 130px">monto<input type="text" id="coMonto" value="85,50" autocomplete="off" inputmode="decimal"></label>
+          </div>
+          <div class="seg" id="coMode" role="group" aria-label="Modo de redondeo">
+            <button type="button" aria-pressed="true" data-m="away">AwayFromZero</button>
+            <button type="button" aria-pressed="false" data-m="even">ToEven (por defecto de .NET)</button>
+          </div>
+          <div class="out" id="coOut" aria-live="polite"></div>
+        </div>
+        <div class="stack"><pre class="snip" id="coCode"></pre><div class="explain" id="coNote"></div></div>
+      </div>
+    </section>
+
+    <!-- 8. decimal vs double -->
+    <section class="slide" data-title="Por qué decimal">
+      <header><p class="eyebrow">Parte 2 · Propinas.Core</p><h2>Con dinero se usa decimal, no double</h2></header>
+      <p class="lead">Sumá dos importes. El <code>double</code> trabaja en base 2 y arrastra errores de precisión; el <code>decimal</code> trabaja en base 10.</p>
+      <div class="row">
+        <label class="field" style="flex:0 1 140px">primer importe<input type="number" id="dcA" value="0.1" step="0.1"></label>
+        <label class="field" style="flex:0 1 140px">segundo importe<input type="number" id="dcB" value="0.2" step="0.1"></label>
+      </div>
+      <div class="cols">
+        <article class="card"><span class="tag">double</span><pre class="snip" style="margin:6px 0 10px" id="dcCodeD"></pre><p>Resultado:</p><div class="bigval" id="dcD" aria-live="polite"></div></article>
+        <article class="card key"><span class="tag now">decimal</span><pre class="snip" style="margin:6px 0 10px" id="dcCodeM"></pre><p>Resultado:</p><div class="bigval" id="dcM" aria-live="polite"></div></article>
+      </div>
+      <div class="explain" id="dcNote"></div>
+    </section>
+
+    <!-- 9. Consola -->
+    <section class="slide" data-title="Pantalla de consola">
+      <header><p class="eyebrow">Parte 3 · Consola</p><h2>La consola repite hasta recibir un dato válido</h2></header>
+      <p class="lead">En la consola el programa dirige la conversación: pide un dato, espera la respuesta y sigue.</p>
+      <div class="cols">
+        <div class="stack">
+          <form class="row" id="csForm" autocomplete="off">
+            <label class="field" style="flex:1 1 130px">Monto de la cuenta<input type="text" id="csMonto" value="85,50"></label>
+            <label class="field" style="flex:1 1 130px">Porcentaje (Enter = 10)<input type="text" id="csPct" value="15%"></label>
+            <button class="btn primary" type="submit">Ejecutar</button>
+          </form>
+          <div class="log" id="csLog" aria-label="Consola"></div>
+        </div>
+        <div class="codeview" data-code="consola"></div>
+      </div>
+      <div class="scroll-x"><table>
+        <thead><tr><th>Método</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><code>Main</code></td><td>Punto de entrada. Repite el ciclo: pedir datos, calcular, mostrar y preguntar si se continúa.</td></tr>
+          <tr><td><code>PedirMonto</code></td><td>Pide el monto hasta que se escribe un número mayor o igual a cero.</td></tr>
+          <tr><td><code>PedirPorcentaje</code></td><td>Si solo se presiona Enter, usa 10 %. Acepta "15" o "15%".</td></tr>
+          <tr><td><code>MostrarDetalle</code></td><td>Muestra cuenta, propina y total con formato de moneda y alineados.</td></tr>
+          <tr><td><code>PreguntarSiContinua</code></td><td>Pregunta si se quiere calcular otra cuenta y acepta solo "s" o "n".</td></tr>
+        </tbody></table></div>
+    </section>
+
+    <!-- 10. Windows Forms -->
+    <section class="slide" data-title="Windows Forms">
+      <header><p class="eyebrow">Parte 4 · Windows Forms</p><h2>El formulario reacciona a eventos</h2></header>
+      <p class="lead">En escritorio la persona dirige: escribe cuando quiere y el programa responde. Un evento es un aviso que lanza un control; el manejador es el método que se ejecuta.</p>
+      <div class="cols">
+        <div class="stack">
+          <div class="card">
+            <div class="row">
+              <label class="field" style="flex:1 1 130px">campoMonto<input type="number" id="wfMonto" value="0" min="0" step="100"></label>
+              <label class="field" style="flex:1 1 130px">campoPorcentaje<input type="number" id="wfPct" value="10" min="0" max="100" step="1"></label>
+              <button class="btn" type="button" id="wfClear">Limpiar (Alt + L)</button>
+            </div>
+            <div class="kv" style="margin-top:12px" aria-live="polite"><span>valorPropina.Text</span><b id="wfProp"></b><span>valorTotal.Text</span><b id="wfTot"></b></div>
+          </div>
+          <div class="log" id="wfLog" aria-label="Eventos" style="min-height:7em"></div>
+        </div>
+        <div class="codeview" data-code="forms"></div>
+      </div>
+      <div class="grid3">
+        <div class="card"><span class="tag">Dos archivos</span><h3>Diseño y comportamiento</h3><p><code>FormularioPropina.Designer.cs</code> tiene los controles; <code>FormularioPropina.cs</code> tiene qué hacer ante cada evento. Es una misma clase gracias a <code>partial</code>.</p></div>
+        <div class="card"><span class="tag">NumericUpDown</span><h3>Prevenir el error</h3><p>No dejan escribir letras ni valores fuera de rango. Prevenir es mejor que mostrar un mensaje después.</p></div>
+        <div class="card"><span class="tag">UX</span><h3>Cálculo inmediato y atajos</h3><p>No hace falta un botón Calcular. El <code>&amp;</code> en <code>&amp;Limpiar</code> permite usar Alt + L.</p></div>
+      </div>
+    </section>
+
+    <!-- 11. MVC: tres roles -->
+    <section class="slide" data-title="MVC: tres responsabilidades">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>Modelo, vista y controlador</h2></header>
+      <p class="lead">La aplicación web separa quién guarda los datos, quién los muestra y quién coordina. Tocá cada pieza.</p>
+      <div class="seg" id="mvTabs" role="group" aria-label="Pieza de MVC"></div>
+      <div class="cols">
+        <div class="stack">
+          <svg class="illus" viewBox="0 0 440 230" role="img" aria-label="El controlador recibe la solicitud, usa el modelo y elige la vista">
+            <g text-anchor="middle">
+              <rect id="mvB1" x="150" y="10" width="140" height="56" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="220" y="43">Controlador</text>
+              <rect id="mvB0" x="10" y="160" width="140" height="56" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="80" y="193">Modelo</text>
+              <rect id="mvB2" x="290" y="160" width="140" height="56" rx="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text x="360" y="193">Vista</text>
+              <path class="stroke" d="M180 68 L110 156 M104 146 L108 158 L119 154"/>
+              <path class="stroke" d="M260 68 L330 156 M321 154 L332 158 L336 146"/>
+              <path class="stroke dash" style="stroke-dasharray:5 4" d="M152 188 H286 M278 182 L288 188 L278 194"/>
+              <text x="220" y="180" class="muted" font-size="11">datos</text>
+              <text x="86" y="108" class="muted" font-size="11">usa</text><text x="356" y="108" class="muted" font-size="11">elige</text>
+              <text x="220" y="228" class="muted" font-size="11">el navegador solo ve el HTML de la vista</text>
+            </g>
+          </svg>
+          <div class="explain" id="mvNote" aria-live="polite"></div>
+        </div>
+        <div class="stack"><span class="tag now" id="mvFile"></span><pre class="snip" id="mvCode"></pre></div>
+      </div>
+    </section>
+
+    <!-- 12. Recorrido -->
+    <section class="slide" data-title="Recorrido de una solicitud">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>De un clic en el navegador a la respuesta</h2></header>
+      <div class="zones">
+        <div class="zone"><h4>Frontend · navegador</h4><div class="node" id="jn-nav"><small>cliente</small>Navegador</div></div>
+        <div class="zone"><h4>Backend · servidor ASP.NET Core</h4>
+          <div class="flow">
+            <div class="node" id="jn-mw"><small>Program.cs</small>Middleware</div><span class="arrow" aria-hidden="true">&rarr;</span>
+            <div class="node" id="jn-route"><small>Program.cs</small>Enrutamiento</div><span class="arrow" aria-hidden="true">&rarr;</span>
+            <div class="node" id="jn-ctrl"><small>Controllers</small>PropinaController</div>
+          </div>
+          <div class="flow">
+            <div class="node" id="jn-vm"><small>Models</small>PropinaViewModel</div>
+            <div class="node" id="jn-core"><small>Propinas.Core</small>CalculadoraPropina</div>
+            <div class="node" id="jn-view"><small>Views</small>Index.cshtml + _Layout</div>
+          </div>
+        </div>
+      </div>
+      <div class="wire" id="jWire" aria-live="polite"></div>
+      <div class="cols">
+        <div class="stack">
+          <div class="explain" id="jNote" aria-live="polite"></div>
+          <div class="row">
+            <button class="btn" type="button" id="jBack">Atrás</button>
+            <button class="btn primary" type="button" id="jNext">Paso</button>
+            <button class="btn" type="button" id="jReset">Reiniciar</button>
+          </div>
+        </div>
+        <div class="stack"><span class="tag" id="jFile"></span><pre class="snip" id="jCode"></pre></div>
+      </div>
+    </section>
+
+    <!-- 14. Rutas -->
+    <section class="slide" data-title="Enrutamiento">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>La URL se traduce en controlador y acción</h2></header>
+      <div class="cols">
+        <div class="stack">
+          <div class="row">
+            <label class="field" style="flex:1 1 200px">URL<input type="text" id="rtUrl" value="/Propina" autocomplete="off" spellcheck="false"></label>
+          </div>
+          <div class="seg" id="rtVerb" role="group" aria-label="Verbo HTTP">
+            <button type="button" aria-pressed="true" data-v="GET">GET</button>
+            <button type="button" aria-pressed="false" data-v="POST">POST</button>
+          </div>
+          <div class="seg" id="rtEx" role="group" aria-label="Ejemplos"></div>
+          <div class="out" id="rtOut" aria-live="polite"></div>
+        </div>
+        <pre class="snip" id="rtCode"></pre>
+      </div>
+    </section>
+
+    <!-- 15. Controlador -->
+    <section class="slide" data-title="El controlador">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>Dos acciones con el mismo nombre</h2></header>
+      <p class="lead">El verbo HTTP decide cuál se ejecuta: <code>GET</code> pide la pantalla y <code>POST</code> procesa el envío.</p>
+      <div class="codeview" data-code="ctrl"></div>
+    </section>
+
+    <!-- 16. ViewModel -->
+    <section class="slide" data-title="Modelo de vista y validación">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>Enlace de modelo y validación</h2></header>
+      <div class="cols">
+        <div class="stack">
+          <form class="row" id="vmForm" autocomplete="off">
+            <label class="field" style="flex:1 1 130px">Monto de la cuenta<input type="text" id="vmMonto" value="1000,50"></label>
+            <label class="field" style="flex:1 1 130px">Porcentaje de propina<input type="text" id="vmPct" value="10"></label>
+            <button class="btn primary" type="submit">Enviar (POST)</button>
+          </form>
+          <div class="scroll-x"><table class="tbl2"><thead><tr><th>Propiedad</th><th>Valor enlazado</th><th>ModelState</th></tr></thead><tbody id="vmTable"></tbody></table></div>
+          <div class="out" id="vmOut" aria-live="polite"></div>
+        </div>
+        <div class="codeview" data-code="vm"></div>
+      </div>
+    </section>
+
+    <!-- 17. Vista Razor -->
+    <section class="slide" data-title="La vista Razor">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>Razor ejecuta C# en el servidor y entrega HTML</h2></header>
+      <div class="row">
+        <label class="field" style="flex:0 1 150px">Monto<input type="number" id="rzMonto" value="1000" min="0" step="100"></label>
+        <label class="field" style="flex:0 1 150px">Porcentaje<input type="number" id="rzPct" value="10" min="0" max="100" step="1"></label>
+        <div class="seg" id="rzTabs" role="group" aria-label="Estado del modelo">
+          <button type="button" aria-pressed="true" data-d="0">Primer GET (Detalle = null)</button>
+          <button type="button" aria-pressed="false" data-d="1">Después del POST</button>
+        </div>
+      </div>
+      <div class="cols">
+        <div class="stack"><span class="tag">Index.cshtml (servidor)</span><pre class="snip" id="rzSrc"></pre></div>
+        <div class="stack"><span class="tag now">HTML recibido (navegador)</span><pre class="snip" id="rzHtml" aria-live="polite"></pre></div>
+      </div>
+      <div class="explain" id="rzNote"></div>
+    </section>
+
+    <!-- 18. Seguridad -->
+    <section class="slide" data-title="Seguridad y errores">
+      <header><p class="eyebrow">Parte 5 · Web MVC</p><h2>Protecciones que ya incluye el proyecto</h2></header>
+      <div class="seg" id="sgTabs" role="group" aria-label="Protección"></div>
+      <div class="cols">
+        <pre class="snip" id="sgCode"></pre>
+        <div class="stack"><div class="explain" id="sgNote" aria-live="polite"></div><div class="out" id="sgOut"></div></div>
+      </div>
+    </section>
+
+    <!-- 19. Comparación -->
+    <section class="slide" data-title="Las tres interfaces">
+      <header><p class="eyebrow">Parte 6 · Comparación</p><h2>Cambia la interfaz, no la regla del cálculo</h2></header>
+      <div class="scroll-x">
+        <table>
+          <thead><tr><th></th><th>Consola</th><th>Windows Forms</th><th>Web MVC</th></tr></thead>
+          <tbody>
+            <tr><td><b>¿Quién lleva el control?</b></td><td>El programa pregunta y espera</td><td>La persona; el programa responde a eventos</td><td>La persona; el servidor responde a solicitudes</td></tr>
+            <tr><td><b>Ingreso de datos</b></td><td>Escribiendo texto</td><td>Campos y botones</td><td>Formulario HTML</td></tr>
+            <tr><td><b>Evitar datos inválidos</b></td><td><code>TryParse</code> y volver a preguntar</td><td>Controles numéricos que limitan la entrada</td><td>Atributos de validación en el modelo</td></tr>
+            <tr><td><b>Dónde se ejecuta</b></td><td>En la terminal</td><td>En la computadora (solo Windows)</td><td>En un servidor; se ve en el navegador</td></tr>
+            <tr><td><b>¿Usa <code>CalculadoraPropina</code>?</b></td><td>Sí, sin cambios</td><td>Sí, sin cambios</td><td>Sí, sin cambios</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="explain">Lo que cambia es cómo se piden los datos y cómo se muestra el resultado. Lo que no cambia es la regla del cálculo.</div>
+    </section>
+
+    <!-- 19b. Conceptos clave -->
+    <section class="slide" data-title="Conceptos clave">
+      <header><p class="eyebrow">Parte 6 · Glosario</p><h2>Conceptos clave</h2></header>
+      <label class="field" style="max-width:360px">Buscar un concepto<input type="text" id="gsQ" autocomplete="off" placeholder="Por ejemplo: constructor"></label>
+      <div class="scroll-x"><table><thead><tr><th>Concepto</th><th>Significado</th></tr></thead><tbody id="gsBody" aria-live="polite"></tbody></table></div>
+    </section>
+
+    <!-- 19c. Cómo ejecutar -->
+    <section class="slide" data-title="Cómo ejecutar la solución">
+      <header><p class="eyebrow">Parte 6 · Práctica</p><h2>Cómo ejecutar la solución</h2></header>
+      <div class="grid3">
+        <div class="card key"><span class="tag now">Requisito</span><h3>.NET 8 SDK</h3><p>O superior. Se comprueba con <code>dotnet --version</code>.</p></div>
+        <div class="card"><span class="tag">Requisito</span><h3>Windows</h3><p>Para <code>Propinas.Visual</code>: Windows Forms no funciona en otros sistemas.</p></div>
+        <div class="card"><span class="tag">Requisito</span><h3>Un editor</h3><p>Visual Studio o Visual Studio Code.</p></div>
+      </div>
+      <div class="seg" id="exTabs" role="group" aria-label="Forma de ejecutar"></div>
+      <div class="cols">
+        <pre class="snip" id="exCode"></pre>
+        <div class="explain" id="exNote" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- 20. Clasificador -->
+    <section class="slide" data-title="¿Dónde va cada cosa?">
+      <header><p class="eyebrow">Parte 6 · Práctica</p><h2>¿Dónde va cada responsabilidad?</h2></header>
+      <p class="lead">Elegí la pieza de la solución web que se ocupa de cada tarea.</p>
+      <div id="tasks" style="display:grid;gap:8px;max-width:900px"></div>
+      <div class="out" id="taskScore" aria-live="polite" style="max-width:900px;min-height:2.6em"></div>
+    </section>
+
+    <!-- 21. Resumen -->
+    <section class="slide" data-title="Resumen">
+      <header><p class="eyebrow">Para recordar</p><h2>En resumen</h2></header>
+      <div class="grid3">
+        <div class="card key"><span class="tag">Core</span><h3>Una sola lógica</h3><p>La calculadora no sabe nada de pantallas y se reutiliza.</p></div>
+        <div class="card"><span class="tag">Consola</span><h3>Texto y bucles</h3><p><code>TryParse</code> hasta obtener un dato válido.</p></div>
+        <div class="card"><span class="tag">Forms</span><h3>Eventos</h3><p>Cada cambio de un control recalcula el resultado.</p></div>
+        <div class="card"><span class="tag">MVC</span><h3>Tres responsabilidades</h3><p>Modelo, vista y controlador, cada uno con su tarea.</p></div>
+        <div class="card"><span class="tag">HTTP</span><h3>Solicitud y respuesta</h3><p>El C# corre en el servidor; al navegador llega HTML.</p></div>
+        <div class="card"><span class="tag">Servidor</span><h3>Valida siempre</h3><p>Token, <code>ModelState</code> y errores genéricos.</p></div>
+      </div>
+      <div class="explain"><b>Para recordar:</b> una buena solución separa qué hace el programa (la lógica) de cómo se presenta (la interfaz). Así podés cambiar o agregar pantallas sin volver a escribir las reglas.</div>
+    </section>
+
+  </main>
+
+  <nav class="foot" aria-label="Navegación de la presentación">
+    <button class="nav-btn alt" id="prev" aria-label="Diapositiva anterior">&larr; Anterior</button>
+    <div class="progress">
+      <div class="track" role="progressbar" aria-label="Progreso" aria-valuemin="1" id="track"><div class="fill" id="fill"></div></div>
+      <div class="counter"><span id="ctitle"></span><span id="cnum"></span></div>
+    </div>
+    <button class="nav-btn" id="next" aria-label="Diapositiva siguiente">Siguiente &rarr;</button>
+  </nav>
+</div>
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function money(n) { return Number(n).toLocaleString("es-AR", { style: "currency", currency: "ARS" }); }
+  function dec(n) { return Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
+  function num(id) { var v = Number($(id).value); return isFinite(v) ? v : 0; }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  /* Interpreta un texto como lo haría decimal.TryParse con la cultura es-AR: punto = miles, coma = decimales. */
+  function parseAR(s) {
+    var t = String(s).trim().replace(/\s+/g, "");
+    if (t === "") return null;
+    t = t.replace(/\./g, "").replace(",", ".");
+    return /^-?\d+(\.\d+)?$/.test(t) ? Number(t) : NaN;
+  }
+
+  /* Réplica del cálculo del Core con enteros (centavos), sin errores de coma flotante. */
+  function calcPropina(monto, frac, mode) {
+    var c = Math.round(monto * 100), p = Math.round(frac * 10000), prod = c * p;
+    var q = Math.floor(prod / 10000), rem = prod - q * 10000;
+    if (rem > 5000 || (rem === 5000 && (mode !== "even" || q % 2 === 1))) q++;
+    return q / 100;
+  }
+
+  /* ---------- Resaltado de sintaxis C# ---------- */
+  var KW = new Set("namespace class static void return new if else while for throw public private partial using out get set null var int double bool decimal string true false object const this async".split(" "));
+  var TY = new Set("Console Program Math MidpointRounding ArgumentException CalculadoraPropina DetallePropina PropinaViewModel PropinaController Controller IActionResult ModelState Form EventArgs HttpContext Activity WebApplication CultureInfo".split(" "));
+  function hl(line) {
+    var re = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d+(?:[.,]\d+)?m?\b)|(\b[A-Za-z_]\w*\b)/g, out = "", last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      var t = m[0], cls = "";
+      if (m[1]) cls = "c"; else if (m[2]) cls = "s"; else if (m[3]) cls = "n";
+      else if (KW.has(t)) cls = "k"; else if (TY.has(t)) cls = "t";
+      out += cls ? '<span class="' + cls + '">' + esc(t) + "</span>" : esc(t);
+      last = re.lastIndex;
+    }
+    return out + esc(line.slice(last));
+  }
+  function setSnip(pre, text, raw) { pre.innerHTML = raw ? esc(text) : text.split("\n").map(hl).join("\n"); }
+
+  /* ---------- Código de los ejemplos ---------- */
+  var CODE = {
+    detalle: { file: "DetallePropina.cs · Propinas.Core", src: [
+      "public class DetallePropina", "{", "    public decimal Monto { get; }", "    public decimal Porcentaje { get; }   // de 0 a 1",
+      "    public decimal Propina { get; }", "    public decimal Total { get; }", "",
+      "    public DetallePropina(decimal monto, decimal porcentaje, decimal propina, decimal total)", "    {",
+      "        Monto = monto;", "        Porcentaje = porcentaje;", "        Propina = propina;", "        Total = total;", "    }", "}"],
+      notes: [
+        ["Un objeto para el resultado", [1, 1], "Un método solo puede devolver un valor. Esta clase reúne los cuatro datos del cálculo para entregarlos juntos."],
+        ["Propiedades de solo lectura", [3, 6], "Solo tienen get: se asignan en el constructor y luego no cambian. Un resultado ya calculado no debería poder modificarse."],
+        ["Constructor", [8, 14], "Recibe los cuatro datos y los guarda. Las tres pantallas reciben exactamente el mismo objeto."]] },
+    calc: { file: "CalculadoraPropina.cs · Propinas.Core", src: [
+      "public class CalculadoraPropina", "{", "    public decimal Porcentaje { get; }", "",
+      "    public CalculadoraPropina(decimal porcentaje)", "    {", "        if (porcentaje < 0 || porcentaje > 1)", "        {",
+      "            throw new ArgumentException(\"El porcentaje debe estar entre 0 y 1.\");", "        }", "", "        Porcentaje = porcentaje;", "    }", "",
+      "    public decimal CalcularPropina(decimal monto)", "    {", "        if (monto < 0)", "        {",
+      "            throw new ArgumentException(\"El monto no puede ser negativo.\");", "        }", "",
+      "        return Math.Round(monto * Porcentaje, 2, MidpointRounding.AwayFromZero);", "    }", "",
+      "    public decimal CalcularTotal(decimal monto)", "    {", "        return monto + CalcularPropina(monto);", "    }", "",
+      "    public DetallePropina Calcular(decimal monto)", "    {", "        decimal propina = CalcularPropina(monto);", "        decimal total = monto + propina;", "",
+      "        return new DetallePropina(monto, Porcentaje, propina, total);", "    }", "}"],
+      notes: [
+        ["Estado del objeto", [3, 3], "El porcentaje se define una vez y se aplica a todos los montos de esta instancia. Solo se asigna en el constructor."],
+        ["Constructor que valida", [5, 13], "Si el porcentaje no está entre 0 y 1, lanza ArgumentException. Nunca existe una calculadora en estado inválido."],
+        ["CalcularPropina", [15, 23], "Valida el monto y calcula monto × porcentaje, redondeado a centavos."],
+        ["Redondeo", [22, 22], "AwayFromZero redondea como se hace a mano: 12,825 pasa a 12,83. Sin ese argumento .NET usa redondeo bancario y daría 12,82."],
+        ["CalcularTotal", [25, 28], "Reutiliza CalcularPropina en lugar de repetir la fórmula: si la regla cambia, se modifica en un solo lugar."],
+        ["Calcular", [30, 37], "Arma y devuelve el DetallePropina completo. Es el método que usan las pantallas."]] },
+    consola: { file: "Program.cs · Propinas.Consola", src: [
+      "static decimal PedirMonto()", "{", "    while (true)", "    {", "        Console.Write(\"Monto de la cuenta: \");", "        string? texto = Console.ReadLine();", "",
+      "        if (decimal.TryParse(texto, out decimal monto) && monto >= 0)", "        {", "            return monto;", "        }", "",
+      "        Console.WriteLine(\"  Ingrese un número mayor o igual a cero.\");", "    }", "}", "",
+      "// En Main:", "CalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);", "DetallePropina detalle = calculadora.Calcular(monto);",
+      "Console.WriteLine($\"  {\"Total a pagar\",-16}{detalle.Total,14:C}\");"],
+      notes: [
+        ["Bucle de validación", [3, 14], "La consola no impide escribir cualquier cosa, así que pregunta una y otra vez hasta recibir un dato válido."],
+        ["TryParse", [8, 8], "Intenta convertir el texto a número sin lanzar un error. Usa la cultura del equipo: en Argentina la coma separa los decimales."],
+        ["Uso del Core", [18, 19], "Crea la calculadora con el porcentaje de 0 a 1 y pide el detalle completo."],
+        ["Formato de salida", [20, 20], ",-16 alinea a la izquierda en 16 espacios; ,14:C alinea a la derecha en 14 y da formato de moneda."]] },
+    forms: { file: "FormularioPropina.cs · Propinas.Visual", src: [
+      "public partial class FormularioPropina : Form", "{", "    public FormularioPropina()", "    {", "        InitializeComponent();", "        ActualizarResultado();", "    }", "",
+      "    private void CambioDeDatos(object? sender, EventArgs e)", "    {", "        ActualizarResultado();", "    }", "",
+      "    private void BotonLimpiar_Click(object? sender, EventArgs e)", "    {", "        campoMonto.Value = 0;", "        campoPorcentaje.Value = 10;", "        campoMonto.Focus();", "    }", "",
+      "    private void ActualizarResultado()", "    {", "        decimal porcentaje = campoPorcentaje.Value / 100m;", "        CalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);",
+      "        DetallePropina detalle = calculadora.Calcular(campoMonto.Value);", "",
+      "        valorPropina.Text = detalle.Propina.ToString(\"C\");", "        valorTotal.Text = detalle.Total.ToString(\"C\");", "    }", "}"],
+      notes: [
+        ["Clase parcial", [1, 1], "partial indica que la clase continúa en FormularioPropina.Designer.cs: allí está el diseño (los controles) y aquí el comportamiento."],
+        ["Constructor", [3, 7], "InitializeComponent crea y acomoda los controles. Luego se muestra el resultado inicial."],
+        ["Evento de cambio", [9, 12], "Se ejecuta cada vez que cambia el monto o el porcentaje y vuelve a calcular."],
+        ["Botón Limpiar", [14, 19], "Restablece los valores iniciales y devuelve el foco al campo del monto."],
+        ["Uso del Core", [21, 29], "Los campos numéricos no admiten valores inválidos, así que la calculadora siempre recibe datos correctos."]] },
+    ctrl: { file: "PropinaController.cs · Propinas.VisualWeb", src: [
+      "public class PropinaController : Controller", "{", "    [HttpGet]", "    public IActionResult Index()", "    {", "        return View(new PropinaViewModel());", "    }", "",
+      "    [HttpPost]", "    [ValidateAntiForgeryToken]", "    public IActionResult Index(PropinaViewModel modelo)", "    {", "        if (!ModelState.IsValid)", "        {", "            return View(modelo);", "        }", "",
+      "        decimal monto = modelo.Monto.GetValueOrDefault();", "        decimal porcentaje = modelo.Porcentaje.GetValueOrDefault() / 100m;", "",
+      "        CalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);", "        modelo.Detalle = calculadora.Calcular(monto);", "", "        return View(modelo);", "    }", "}"],
+      notes: [
+        ["GET: mostrar el formulario", [3, 7], "Se ejecuta al abrir /Propina. Devuelve la vista con un modelo vacío: el formulario aparece con el porcentaje en 10."],
+        ["POST: recibir el envío", [9, 11], "El parámetro modelo lo completa el framework con los campos del formulario. El atributo exige el token antifalsificación."],
+        ["Validación", [13, 16], "Si alguna regla falla, vuelve a mostrar la misma vista con los errores y con lo que escribió el usuario."],
+        ["Conversión", [18, 19], "El usuario escribe de 0 a 100; la calculadora trabaja de 0 a 1, por eso se divide por 100."],
+        ["Cálculo con el Core", [21, 22], "El controlador solo coordina: la regla del cálculo vive en Propinas.Core."],
+        ["Devolver la vista", [24, 24], "Se renderiza Index.cshtml otra vez, ahora con Detalle cargado."]] },
+    vm: { file: "PropinaViewModel.cs · Propinas.VisualWeb", src: [
+      "public class PropinaViewModel", "{", "    [Required(ErrorMessage = \"Ingrese el monto de la cuenta.\")]",
+      "    [Range(0, 10000000, ErrorMessage = \"El monto debe estar entre 0 y 10.000.000.\")]", "    [Display(Name = \"Monto de la cuenta\")]", "    public decimal? Monto { get; set; }", "",
+      "    [Required(ErrorMessage = \"Ingrese el porcentaje de propina.\")]", "    [Range(0, 100, ErrorMessage = \"El porcentaje debe estar entre 0 y 100.\")]",
+      "    [Display(Name = \"Porcentaje de propina\")]", "    public decimal? Porcentaje { get; set; } = 10;", "", "    public DetallePropina? Detalle { get; set; }", "}"], notes: [] }
+  };
+  var views = {};
+  function renderCode(host) {
+    var d = CODE[host.dataset.code]; if (!d) return;
+    var box = el("div", "code"), head = el("div", "code-head"), body = el("div", "code-body");
+    head.appendChild(el("span", "", d.file));
+    var cp = el("button", "", "Copiar"); cp.type = "button"; cp.setAttribute("aria-label", "Copiar el código");
+    cp.addEventListener("click", function () {
+      function done(ok) { cp.textContent = ok ? "Copiado" : "Seleccioná y copiá"; setTimeout(function () { cp.textContent = "Copiar"; }, 1500); }
+      try { navigator.clipboard.writeText(d.src.join("\n")).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+    });
+    head.appendChild(cp); box.appendChild(head);
+    var lines = d.src.map(function (l, i) {
+      var r = el("div", "ln"), n = el("i", "", String(i + 1)); n.setAttribute("aria-hidden", "true");
+      var c = el("span"); c.innerHTML = hl(l) || " "; r.appendChild(n); r.appendChild(c); body.appendChild(r); return r;
+    });
+    box.appendChild(body);
+    var wrap = el("div"); wrap.style.cssText = "display:grid;gap:10px;min-width:0"; wrap.appendChild(box);
+    var api = { mark: function (ranges) { lines.forEach(function (r, i) { var on = ranges.some(function (g) { return i + 1 >= g[0] && i + 1 <= g[1]; }); r.classList.toggle("on", on); }); } };
+    if (d.notes.length) {
+      var list = el("div", "notes"), ex = el("div", "explain"); ex.setAttribute("aria-live", "polite");
+      var btns = d.notes.map(function (n, i) {
+        var b = el("button", "note", n[0]); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { select(i); }); list.appendChild(b); return b;
+      });
+      var select = function (i) { btns.forEach(function (b, j) { b.setAttribute("aria-pressed", String(i === j)); }); api.mark([d.notes[i][1]]); ex.textContent = d.notes[i][2]; };
+      wrap.appendChild(list); wrap.appendChild(ex); select(0);
+    }
+    host.appendChild(wrap); views[host.dataset.code] = api;
+  }
+  $$(".codeview").forEach(renderCode);
+
+  function seg(id, cb) {
+    var g = $(id); if (!g) return;
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      $$("button", g).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      cb(b);
+    });
+  }
+  function segButtons(id, labels) {
+    var g = $(id); labels.forEach(function (t, i) { var b = el("button", "", t); b.type = "button"; b.dataset.i = i; b.setAttribute("aria-pressed", String(i === 0)); g.appendChild(b); });
+  }
+  function tabs(id, labels, cb) { segButtons(id, labels); seg(id, function (b) { cb(+b.dataset.i); }); cb(0); }
+
+  /* ---------- Slide 3: el problema ---------- */
+  function pbDraw() {
+    var m = Math.max(0, num("#pbMonto")), p = Math.min(100, Math.max(0, num("#pbPct"))), frac = p / 100;
+    var prop = calcPropina(m, frac, "away"), tot = Math.round((m + prop) * 100) / 100;
+    var kv = $("#pbKv"); kv.innerHTML = "";
+    [["Cuenta", money(m)], ["Propina (" + p + " %)", money(prop)], ["Total a pagar", money(tot)]].forEach(function (r, i) {
+      var a = el("span", i === 2 ? "tot" : "", r[0]), b = el("b", i === 2 ? "tot" : "", r[1]); kv.appendChild(a); kv.appendChild(b);
+    });
+    setSnip($("#pbCode"), "decimal porcentaje = " + p + "m / 100m;   // " + String(frac).replace(".", ",") + "\n\nCalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);\nDetallePropina detalle = calculadora.Calcular(" + m + "m);\n\n// detalle.Propina -> " + dec(prop) + "\n// detalle.Total   -> " + dec(tot));
+    var half = (Math.round(m * 100) * Math.round(p * 100)) % 10000 === 5000;
+    $("#pbNote").textContent = half ? "La propina exacta es " + String(m * p / 100).replace(".", ",") + ": se redondea a centavos y queda " + String(prop).replace(".", ",") + "."
+      : "El usuario piensa en " + p + " %; la clase trabaja con " + String(frac).replace(".", ",") + ". Cada pantalla hace esa traducción.";
+  }
+  seg("#pbEx", function (b) { $("#pbMonto").value = b.dataset.m; $("#pbPct").value = b.dataset.p; pbDraw(); });
+  ["#pbMonto", "#pbPct"].forEach(function (id) { $(id).addEventListener("input", pbDraw); }); pbDraw();
+
+  /* ---------- Slide 4: arquitectura ---------- */
+  var AR = [
+    { n: "Consola", note: "Aplicación de consola: pregunta los datos por texto y muestra el resultado en la terminal.", code: "using Propinas.Core;\n\nCalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);\nDetallePropina detalle = calculadora.Calcular(monto);\nMostrarDetalle(detalle);", box: 0 },
+    { n: "Visual", note: "Aplicación de escritorio con Windows Forms: una ventana con campos y botones. Solo funciona en Windows.", code: "using Propinas.Core;\n\nCalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);\nDetallePropina detalle = calculadora.Calcular(campoMonto.Value);\nvalorTotal.Text = detalle.Total.ToString(\"C\");", box: 1 },
+    { n: "VisualWeb", note: "Aplicación web con ASP.NET Core MVC y vistas Razor: una página que se abre en el navegador.", code: "using Propinas.Core;\n\nCalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);\nmodelo.Detalle = calculadora.Calcular(monto);\nreturn View(modelo);", box: 2 },
+    { n: "Core", note: "Biblioteca de clases. Contiene las reglas del cálculo. No tiene pantallas: por eso la pueden usar los otros tres.", code: "public class CalculadoraPropina\n{\n    public DetallePropina Calcular(decimal monto) { ... }\n}", box: 3 }];
+  setSnip($("#arTree"), "m5/Ejercicios/\n  Propinas.sln\n  Propinas.Core/       <- CalculadoraPropina.cs\n  Propinas.Consola/    <- Program.cs\n  Propinas.Visual/     <- FormularioPropina.cs y FormularioPropina.Designer.cs\n  Propinas.VisualWeb/  <- Controllers, Models, Views y Program.cs", true);
+  function arShow(i) {
+    var a = AR[i]; $("#arNote").textContent = a.note; setSnip($("#arCode"), a.code);
+    for (var j = 0; j < 4; j++) { var b = $("#arB" + j); b.setAttribute("fill", j === a.box ? "var(--accent)" : "var(--panel)"); }
+  }
+  tabs("#arTabs", AR.map(function (a) { return "Propinas." + a.n; }), arShow);
+
+  /* ---------- Slide 7: probá el Core ---------- */
+  var CO = { mode: "away" };
+  function coDraw() {
+    var f = parseAR($("#coPct").value), m = parseAR($("#coMonto").value), o = $("#coOut"), n = $("#coNote"); o.innerHTML = "";
+    var fs = String($("#coPct").value).trim(), ms = String($("#coMonto").value).trim();
+    setSnip($("#coCode"), "CalculadoraPropina calculadora = new CalculadoraPropina(" + fs.replace(",", ".") + "m);\nDetallePropina detalle = calculadora.Calcular(" + ms.replace(",", ".") + "m);");
+    if (f === null || m === null || isNaN(f) || isNaN(m)) { o.className = "out bad"; o.appendChild(el("p", "", "Ingresá números válidos (por ejemplo 0,15 y 85,50).")); n.textContent = ""; return; }
+    if (f < 0 || f > 1) { o.className = "out bad"; o.appendChild(el("p", "mono", "ArgumentException")); o.appendChild(el("p", "", "El porcentaje debe estar entre 0 y 1.")); n.textContent = "El constructor rechaza el valor: no se crea ninguna calculadora. Con 15 en lugar de 0,15 ocurre este error."; return; }
+    if (m < 0) { o.className = "out bad"; o.appendChild(el("p", "mono", "ArgumentException")); o.appendChild(el("p", "", "El monto no puede ser negativo.")); n.textContent = "La validación del monto está en CalcularPropina."; return; }
+    var prop = calcPropina(m, f, CO.mode), tot = Math.round((m + prop) * 100) / 100;
+    o.className = "out ok";
+    o.appendChild(el("p", "mono", "detalle.Monto      = " + dec(m))); o.appendChild(el("p", "mono", "detalle.Porcentaje = " + String(f).replace(".", ",")));
+    o.appendChild(el("p", "mono", "detalle.Propina    = " + dec(prop))); o.appendChild(el("p", "mono", "detalle.Total      = " + dec(tot)));
+    var half = (Math.round(m * 100) * Math.round(f * 10000)) % 10000 === 5000;
+    n.textContent = half ? "Es una mitad exacta (medio centavo): AwayFromZero sube al centavo siguiente; ToEven elige el centavo par."
+      : "Probá con monto 85,50 y porcentaje 0,15: la propina exacta es 12,825 y los dos modos difieren.";
+  }
+  ["#coPct", "#coMonto"].forEach(function (id) { $(id).addEventListener("input", coDraw); });
+  seg("#coMode", function (b) { CO.mode = b.dataset.m; coDraw(); }); coDraw();
+
+  /* ---------- Slide 8: decimal vs double ---------- */
+  function dcDraw() {
+    var a = num("#dcA"), b = num("#dcB"), sd = String(a + b), sm = String(Number((a + b).toFixed(10)));
+    setSnip($("#dcCodeD"), "double a = " + a + ";\ndouble b = " + b + ";\nConsole.WriteLine(a + b);");
+    setSnip($("#dcCodeM"), "decimal a = " + a + "m;\ndecimal b = " + b + "m;\nConsole.WriteLine(a + b);");
+    $("#dcD").textContent = sd.replace(".", ","); $("#dcM").textContent = sm.replace(".", ",");
+    $("#dcNote").textContent = sd === sm ? "Con estos importes ambos tipos coinciden. Probá 0,1 y 0,2 para ver el error del double." : "El double no puede representar exactamente 0,1 ni 0,2. Con dinero, esos errores aparecen en los centavos.";
+  }
+  ["#dcA", "#dcB"].forEach(function (id) { $(id).addEventListener("input", dcDraw); }); dcDraw();
+
+  /* ---------- Slide 9: consola ---------- */
+  var csLog = $("#csLog");
+  function logLine(box, cls, t) { box.appendChild(el("div", cls, t)); box.scrollTop = box.scrollHeight; }
+  logLine(csLog, "m", "Completá los datos y tocá Ejecutar.");
+  $("#csForm").addEventListener("submit", function (e) {
+    e.preventDefault(); csLog.innerHTML = "";
+    var mt = $("#csMonto").value, pt = $("#csPct").value, m = parseAR(mt);
+    logLine(csLog, "m", "=== Calculadora de propina ===");
+    logLine(csLog, "", "Monto de la cuenta: " + mt);
+    if (m === null || isNaN(m) || m < 0) { views.consola.mark([[8, 13]]); logLine(csLog, "e", "  Ingrese un número mayor o igual a cero."); return; }
+    views.consola.mark([[8, 10]]);
+    var ptxt = String(pt).replace("%", "").trim(), p;
+    logLine(csLog, "", "Porcentaje de propina (Enter = 10): " + pt);
+    if (String(pt).trim() === "") p = 10; else p = parseAR(ptxt);
+    if (p === null || isNaN(p) || p < 0 || p > 100) { logLine(csLog, "e", "  Ingrese un porcentaje entre 0 y 100."); return; }
+    var prop = calcPropina(m, p / 100, "away"), tot = Math.round((m + prop) * 100) / 100;
+    views.consola.mark([[18, 20]]);
+    logLine(csLog, "g", "  " + "Cuenta".padEnd(16) + money(m).padStart(14));
+    logLine(csLog, "g", "  " + "Propina".padEnd(16) + money(prop).padStart(14));
+    logLine(csLog, "g", "  " + "Total a pagar".padEnd(16) + money(tot).padStart(14));
+  });
+
+  /* ---------- Slide 10: Windows Forms ---------- */
+  var wfLog = $("#wfLog");
+  function wfCalc() {
+    var m = Math.max(0, num("#wfMonto")), p = Math.min(100, Math.max(0, num("#wfPct"))), prop = calcPropina(m, p / 100, "away");
+    $("#wfProp").textContent = money(prop); $("#wfTot").textContent = money(Math.round((m + prop) * 100) / 100);
+  }
+  function wfChange() { wfCalc(); logLine(wfLog, "g", "CambioDeDatos -> ActualizarResultado()"); views.forms.mark([[9, 12], [21, 29]]); }
+  ["#wfMonto", "#wfPct"].forEach(function (id) { $(id).addEventListener("input", wfChange); });
+  $("#wfClear").addEventListener("click", function () {
+    $("#wfMonto").value = 0; $("#wfPct").value = 10; wfCalc();
+    logLine(wfLog, "e", "BotonLimpiar_Click -> valores iniciales y foco en campoMonto"); views.forms.mark([[14, 19]]); $("#wfMonto").focus();
+  });
+  wfCalc(); logLine(wfLog, "m", "Modificá un valor para disparar el evento.");
+
+  /* ---------- Slide 11: MVC ---------- */
+  var MV = [
+    { n: "Modelo", file: "PropinaViewModel.cs", note: "Reúne los datos de la pantalla: lo que escribe el usuario (Monto, Porcentaje) y el resultado del cálculo (Detalle). Lleva las reglas de validación.", code: "public class PropinaViewModel\n{\n    [Required(ErrorMessage = \"Ingrese el monto de la cuenta.\")]\n    public decimal? Monto { get; set; }\n\n    public decimal? Porcentaje { get; set; } = 10;\n\n    public DetallePropina? Detalle { get; set; }\n}", box: 0 },
+    { n: "Vista", file: "Views/Propina/Index.cshtml", note: "Es HTML con C# incrustado (Razor). Solo muestra los datos del modelo; no calcula nada. El servidor la convierte en HTML puro.", code: "@model PropinaViewModel\n\n@if (Model.Detalle != null)\n{\n    <p>Total: @Model.Detalle.Total.ToString(\"C\")</p>\n}", box: 2, raw: true },
+    { n: "Controlador", file: "PropinaController.cs", note: "Recibe la solicitud, valida, usa el Core y decide qué vista devolver con qué modelo. No dibuja HTML.", code: "public IActionResult Index(PropinaViewModel modelo)\n{\n    if (!ModelState.IsValid) { return View(modelo); }\n\n    modelo.Detalle = calculadora.Calcular(monto);\n    return View(modelo);\n}", box: 1 }];
+  function mvShow(i) {
+    var d = MV[i]; $("#mvNote").textContent = d.note; $("#mvFile").textContent = d.file; setSnip($("#mvCode"), d.code, d.raw);
+    for (var j = 0; j < 3; j++) $("#mvB" + j).setAttribute("fill", j === d.box ? "var(--accent)" : "var(--panel)");
+  }
+  tabs("#mvTabs", MV.map(function (d) { return d.n; }), mvShow);
+
+  /* ---------- Slide 12: recorrido ---------- */
+  var JS = [
+    { a: ["nav"], w: "navegador  --  GET /Propina  -->  servidor", t: "El usuario abre la página: el navegador pide /Propina (GET).", f: "HTTP", c: "GET /Propina   // el navegador pide la página" },
+    { a: ["mw"], w: "servidor recibe la solicitud", t: "La solicitud pasa por el pipeline configurado en Program.cs: redirección a HTTPS, archivos estáticos y enrutamiento.", f: "Program.cs", c: "app.UseHttpsRedirection();\napp.UseStaticFiles();\napp.UseRouting();" },
+    { a: ["route"], w: "/Propina  ->  PropinaController.Index", t: "El enrutamiento relaciona la URL con código. Lo que falta en la URL se completa con los valores por defecto.", f: "Program.cs", c: "app.MapControllerRoute(\n    name: \"default\",\n    pattern: \"{controller=Propina}/{action=Index}/{id?}\");" },
+    { a: ["ctrl", "vm"], w: "Index() crea un modelo vacío", t: "El controlador devuelve la vista con el formulario vacío: crea un PropinaViewModel (porcentaje en 10) y llama a View(modelo).", f: "PropinaController.cs", c: "[HttpGet]\npublic IActionResult Index()\n{\n    return View(new PropinaViewModel());\n}" },
+    { a: ["view"], w: "Razor genera el HTML", t: "Razor ejecuta el C# de Index.cshtml en el servidor y lo reemplaza por texto. La vista se inserta dentro de _Layout.cshtml, en @RenderBody().", f: "Index.cshtml", c: "@if (detalle != null)\n{\n    // no entra: detalle es null, no hay tarjeta de resultado\n}", raw: true },
+    { a: ["nav"], w: "navegador  <--  200 OK + HTML", t: "Llega HTML puro: ningún @ ni C#. El navegador lo dibuja.", f: "HTTP", c: "<form method=\"post\"> ... </form>   // HTML con el formulario vacío" },
+    { a: ["nav"], w: "navegador  --  POST /Propina  -->  servidor", t: "El usuario completa los datos y presiona Calcular: el navegador envía el formulario (POST).", f: "HTTP", c: "POST /Propina   // el navegador envía el formulario\nMonto=1000&Porcentaje=10" },
+    { a: ["mw", "route"], w: "middleware y enrutamiento, otra vez", t: "La solicitud vuelve a atravesar el pipeline. Ahora el verbo es POST, así que se elige la acción Index(PropinaViewModel).", f: "PropinaController.cs", c: "[HttpPost]\n[ValidateAntiForgeryToken]\npublic IActionResult Index(PropinaViewModel modelo)" },
+    { a: ["ctrl", "vm"], w: "enlace de modelo y validación", t: "El controlador recibe un PropinaViewModel ya completado. Se evalúan [Required] y [Range]; si algún dato no cumple, vuelve a mostrar el formulario con los errores.", f: "PropinaController.cs", c: "if (!ModelState.IsValid)\n{\n    return View(modelo);   // con los mensajes de error\n}" },
+    { a: ["ctrl", "core"], w: "el controlador usa el Core", t: "Si todo es válido, usa CalculadoraPropina y guarda el DetallePropina en el modelo.", f: "PropinaController.cs", c: "decimal porcentaje = modelo.Porcentaje.GetValueOrDefault() / 100m;\n\nCalculadoraPropina calculadora = new CalculadoraPropina(porcentaje);\nmodelo.Detalle = calculadora.Calcular(monto);" },
+    { a: ["view"], w: "Razor genera el HTML, ahora con resultado", t: "Se devuelve la misma vista, que ahora muestra el resultado porque Detalle tiene valor.", f: "Index.cshtml", c: "<dd class=\"col-5 text-end fs-5 fw-bold mb-0\">@detalle.Total.ToString(\"C\")</dd>", raw: true },
+    { a: ["nav"], w: "navegador  <--  200 OK + HTML", t: "El navegador muestra el HTML nuevo y la persona ve el resultado. Cada acción repite el ciclo.", f: "HTTP", c: "<dd>$ 1.100,00</dd>   // el resultado ya viene escrito en el HTML" }];
+  var ji = 0, JN = ["nav", "mw", "route", "ctrl", "vm", "core", "view"];
+  function jDraw() {
+    var s = JS[ji];
+    JN.forEach(function (n) { $("#jn-" + n).classList.toggle("active", s.a.indexOf(n) > -1); });
+    $("#jWire").textContent = s.w; $("#jNote").textContent = (ji + 1) + " / " + JS.length + " · " + s.t;
+    $("#jFile").textContent = s.f; setSnip($("#jCode"), s.c, s.raw || s.f === "HTTP");
+    $("#jBack").disabled = ji === 0; $("#jNext").disabled = ji === JS.length - 1;
+  }
+  $("#jBack").addEventListener("click", function () { if (ji > 0) { ji--; jDraw(); } });
+  $("#jNext").addEventListener("click", function () { if (ji < JS.length - 1) { ji++; jDraw(); } });
+  $("#jReset").addEventListener("click", function () { ji = 0; jDraw(); }); jDraw();
+
+  /* ---------- Slide 14: rutas ---------- */
+  var RT = { v: "GET" };
+  function rtDraw() {
+    var u = $("#rtUrl").value.trim(), path = u.split("?")[0].replace(/^\/+|\/+$/g, ""), parts = path === "" ? [] : path.split("/"), o = $("#rtOut"); o.innerHTML = "";
+    var ctrl = parts[0] || "Propina", act = parts[1] || "Index", id = parts[2] || "(sin valor)";
+    var exists = ctrl.toLowerCase() === "propina" && (act.toLowerCase() === "index" || act.toLowerCase() === "error");
+    var lines = ["controller = " + (parts[0] ? parts[0] : "Propina  (valor por defecto)"), "action     = " + (parts[1] ? parts[1] : "Index  (valor por defecto)"), "id         = " + id];
+    lines.forEach(function (l) { o.appendChild(el("p", "mono", l)); });
+    if (!exists) { o.className = "out bad"; o.appendChild(el("p", "", "Esta combinación no coincide con ninguna acción del proyecto: PropinaController solo define Index y Error.")); return; }
+    o.className = "out ok";
+    if (act.toLowerCase() === "error") o.appendChild(el("p", "", "Se ejecuta PropinaController.Error(): la pantalla que se muestra si ocurre un error inesperado."));
+    else o.appendChild(el("p", "", RT.v === "GET" ? "Se ejecuta Index() con [HttpGet]: devuelve el formulario vacío." : "Se ejecuta Index(PropinaViewModel) con [HttpPost]: procesa el envío."));
+  }
+  var RTEX = ["/", "/Propina", "/Propina/Index", "/Propina/Error", "/Producto"];
+  RTEX.forEach(function (x) { var b = el("button", "", x); b.type = "button"; b.addEventListener("click", function () { $("#rtUrl").value = x; rtDraw(); }); $("#rtEx").appendChild(b); });
+  $("#rtUrl").addEventListener("input", rtDraw); seg("#rtVerb", function (b) { RT.v = b.dataset.v; rtDraw(); });
+  setSnip($("#rtCode"), "app.MapControllerRoute(\n    name: \"default\",\n    pattern: \"{controller=Propina}/{action=Index}/{id?}\");\n\n// /                -> PropinaController.Index\n// /Propina         -> PropinaController.Index\n// /Propina/Error   -> PropinaController.Error\n// {id?} es opcional: aquí no se usa");
+  rtDraw();
+
+  /* ---------- Slide 16: ViewModel ---------- */
+  $("#vmForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var raw = [$("#vmMonto").value, $("#vmPct").value], names = ["Monto", "Porcentaje"], disp = ["Monto de la cuenta", "Porcentaje de propina"];
+    var req = ["Ingrese el monto de la cuenta.", "Ingrese el porcentaje de propina."], rng = [[0, 10000000, "El monto debe estar entre 0 y 10.000.000."], [0, 100, "El porcentaje debe estar entre 0 y 100."]];
+    var tb = $("#vmTable"), valid = true, vals = [], marks = []; tb.innerHTML = "";
+    names.forEach(function (n, i) {
+      var v = parseAR(raw[i]), err = "", bound = "null";
+      if (String(raw[i]).trim() === "") err = req[i];
+      else if (isNaN(v)) err = "El valor '" + raw[i] + "' no es válido para " + disp[i] + ".";
+      else { bound = String(v).replace(".", ",") + "m"; if (v < rng[i][0] || v > rng[i][1]) err = rng[i][2]; }
+      var tr = el("tr"); tr.appendChild(el("td", "", n)); tr.appendChild(el("td", "", bound));
+      var td = el("td", "", err ? err : "válido"); td.style.color = err ? "var(--bad)" : "var(--ok)"; tr.appendChild(td); tb.appendChild(tr);
+      if (err) { valid = false; marks.push(i === 0 ? [3, 4] : [8, 9]); } vals.push(v);
+    });
+    var o = $("#vmOut"); o.innerHTML = "";
+    if (!valid) { o.className = "out bad"; o.appendChild(el("p", "mono", "ModelState.IsValid = false")); o.appendChild(el("p", "", "El controlador devuelve View(modelo): la misma página, con los mensajes junto a cada campo.")); views.vm.mark(marks); return; }
+    var prop = calcPropina(vals[0], vals[1] / 100, "away"); views.vm.mark([[13, 13]]);
+    o.className = "out ok"; o.appendChild(el("p", "mono", "ModelState.IsValid = true"));
+    o.appendChild(el("p", "mono", "modelo.Detalle.Propina = " + dec(prop))); o.appendChild(el("p", "mono", "modelo.Detalle.Total   = " + dec(Math.round((vals[0] + prop) * 100) / 100)));
+  });
+  $("#vmForm").dispatchEvent(new Event("submit", { cancelable: true }));
+
+  /* ---------- Slide 17: Razor ---------- */
+  var RZ = { d: 0 };
+  function rzDraw() {
+    var m = Math.max(0, num("#rzMonto")), p = Math.min(100, Math.max(0, num("#rzPct"))), prop = calcPropina(m, p / 100, "away"), tot = Math.round((m + prop) * 100) / 100;
+    setSnip($("#rzSrc"), "@model PropinaViewModel\n@{\n    DetallePropina? detalle = Model.Detalle;\n}\n\n<form method=\"post\" asp-controller=\"Propina\" asp-action=\"Index\">\n    <input asp-for=\"Monto\" class=\"form-control\" />\n    <input asp-for=\"Porcentaje\" class=\"form-control\" />\n    <button type=\"submit\">Calcular</button>\n</form>\n\n@if (detalle != null)\n{\n    <dd>@detalle.Propina.ToString(\"C\")</dd>\n    <dd>@detalle.Total.ToString(\"C\")</dd>\n}", true);
+    var h = "<form method=\"post\" action=\"/Propina\">\n    <input name=\"Monto\" id=\"Monto\" value=\"" + (RZ.d ? m : "") + "\" class=\"form-control\" />\n    <input name=\"Porcentaje\" id=\"Porcentaje\" value=\"" + p + "\" class=\"form-control\" />\n    <button type=\"submit\">Calcular</button>\n    <input name=\"__RequestVerificationToken\" type=\"hidden\" ... />\n</form>";
+    if (RZ.d) h += "\n\n<dd>" + money(prop) + "</dd>\n<dd>" + money(tot) + "</dd>";
+    setSnip($("#rzHtml"), h, true);
+    $("#rzNote").textContent = RZ.d ? "Detalle tiene valor: el bloque @if se ejecuta en el servidor y sus resultados aparecen escritos en el HTML." : "Detalle es null: el bloque @if no entra y el HTML no contiene ninguna tarjeta de resultado. Los atributos asp-* se convierten en name, id y action.";
+  }
+  ["#rzMonto", "#rzPct"].forEach(function (id) { $(id).addEventListener("input", rzDraw); });
+  seg("#rzTabs", function (b) { RZ.d = +b.dataset.d; rzDraw(); }); rzDraw();
+
+  /* ---------- Slide 18: seguridad ---------- */
+  var SG = [
+    { t: "Token antifalsificación", c: "[HttpPost]\n[ValidateAntiForgeryToken]\npublic IActionResult Index(PropinaViewModel modelo)", n: "[ValidateAntiForgeryToken] protege el formulario contra envíos falsificados desde otros sitios.", o: "Solo se procesan los envíos que vienen del propio formulario." },
+    { t: "Codificación HTML", c: "<p>Identificador: <code>@Model</code></p>\n\n// si Model valiera: <b>hola</b>\n// Razor escribe: &lt;b&gt;hola&lt;/b&gt;", n: "Razor codifica el texto que imprime, lo que evita que alguien inyecte código en la página.", o: "Lo que se ve en pantalla: <b>hola</b> como texto, sin negrita.", raw: true },
+    { t: "Errores genéricos", c: "if (!app.Environment.IsDevelopment())\n{\n    app.UseExceptionHandler(\"/Propina/Error\");\n}", n: "Fuera de Development, un error inesperado lleva a la acción Error, que muestra un mensaje general y el identificador de la solicitud.", o: "La vista Error dice: Ocurrió un error. No se pudo completar la solicitud." },
+    { t: "Cultura es-AR", c: "var cultura = new CultureInfo(\"es-AR\");\napp.UseRequestLocalization(new RequestLocalizationOptions\n{\n    DefaultRequestCulture = new RequestCulture(cultura),\n    RequestCultureProviders = new List<IRequestCultureProvider>()\n});", n: "El servidor interpreta y muestra los números con coma decimal y el símbolo $, siempre igual. Se ignoran las preferencias del navegador.", o: "Por eso se escribe 1000,50 y se muestra $ 1.000,50." },
+    { t: "Validar en el servidor", c: "<form method=\"post\" ... novalidate>\n\nif (!ModelState.IsValid)\n{\n    return View(modelo);\n}", n: "Los atributos [Required] y [Range] definen las reglas una sola vez, con mensajes en español. El formulario tiene novalidate: la validación la hace el servidor con ModelState.", o: "El controlador consulta ModelState.IsValid; no escribe un if por cada regla." }];
+  function sgShow(i) { var s = SG[i]; setSnip($("#sgCode"), s.c, s.raw); $("#sgNote").textContent = s.n; var o = $("#sgOut"); o.textContent = s.o; o.className = "out ok"; }
+  tabs("#sgTabs", SG.map(function (s) { return s.t; }), sgShow);
+
+  /* ---------- Glosario ---------- */
+  var GS = [["Solución", "Contenedor (.sln) que agrupa varios proyectos relacionados."], ["Proyecto", "Conjunto de archivos que se compila en una aplicación o en una biblioteca."],
+    ["Biblioteca de clases", "Proyecto que no se ejecuta solo; otros proyectos lo usan."], ["Referencia entre proyectos", "Permite que un proyecto use las clases de otro."],
+    ["Clase y objeto", "La clase es el molde; el objeto (instancia) es lo que se crea con new."], ["Constructor", "Método especial que se ejecuta al crear el objeto y lo deja en un estado válido."],
+    ["Propiedad", "Forma controlada de leer (y a veces asignar) un dato de un objeto."], ["Separación de responsabilidades", "Cada clase o proyecto hace una sola cosa: la lógica por un lado, la interfaz por otro."],
+    ["Evento", "Aviso que lanza un control ante una acción del usuario (por ejemplo, un clic)."], ["MVC", "Patrón que divide una aplicación web en Modelo, Vista y Controlador."],
+    ["Razor", "Sintaxis que combina HTML con C# usando @."], ["Validación", "Comprobar que los datos ingresados son correctos antes de usarlos."]];
+  function gsDraw() {
+    var q = $("#gsQ").value.trim().toLowerCase(), tb = $("#gsBody"); tb.innerHTML = "";
+    var list = GS.filter(function (r) { return !q || (r[0] + " " + r[1]).toLowerCase().indexOf(q) > -1; });
+    if (!list.length) { var tr0 = el("tr"), td0 = el("td", "", "Sin resultados."); td0.colSpan = 2; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    list.forEach(function (r) { var tr = el("tr"); tr.appendChild(el("td", "", r[0])); tr.lastChild.style.fontWeight = "600"; tr.appendChild(el("td", "", r[1])); tb.appendChild(tr); });
+  }
+  $("#gsQ").addEventListener("input", gsDraw); gsDraw();
+
+  /* ---------- Cómo ejecutar ---------- */
+  var EX = [
+    { t: "Visual Studio", c: "1. Abrí el archivo Propinas.sln.\n2. En el Explorador de soluciones, clic derecho sobre el proyecto\n   y elegí Establecer como proyecto de inicio.\n3. Presioná F5 (o Ctrl + F5 para ejecutar sin depurar).", n: "Elegí el proyecto de inicio según la interfaz que quieras probar." },
+    { t: "Terminal", c: "// Ubicate en la carpeta m5/Ejercicios\ndotnet build Propinas.sln                // compila los cuatro proyectos\ndotnet run --project Propinas.Consola    // aplicación de consola\ndotnet run --project Propinas.Visual     // ventana de Windows Forms\ndotnet run --project Propinas.VisualWeb  // sitio web", n: "El sitio web se abre en http://localhost:5120. Para detenerlo, volvé a la terminal y presioná Ctrl + C." }];
+  tabs("#exTabs", EX.map(function (e) { return e.t; }), function (i) { setSnip($("#exCode"), EX[i].c, true); $("#exNote").textContent = EX[i].n; });
+
+  /* ---------- Slide 20: clasificador ---------- */
+  var OPT = ["Core", "Modelo de vista", "Controlador", "Vista", "Program"];
+  var TASKS = [
+    ["Redondear la propina a centavos", 0, "Es una regla del cálculo: vive en CalculadoraPropina."],
+    ["Exigir que el monto sea obligatorio", 1, "Se declara con [Required] en PropinaViewModel."],
+    ["Elegir qué vista devolver tras un POST", 2, "El controlador decide la vista y con qué modelo."],
+    ["Mostrar la tarjeta si hay un Detalle", 3, "Index.cshtml decide cómo mostrar los datos del modelo."],
+    ["Definir la ruta por defecto", 4, "Se configura con MapControllerRoute en Program.cs."],
+    ["Dividir el porcentaje por 100", 2, "El controlador traduce lo que escribe el usuario a la escala de la calculadora."]];
+  var done = 0, good = 0;
+  TASKS.forEach(function (t) {
+    var row = el("div", "task"), txt = el("span", "", t[0]), sg = el("div", "seg"), fb = el("div", "fb"); fb.setAttribute("aria-live", "polite");
+    OPT.forEach(function (name, oi) {
+      var b = el("button", "", name); b.type = "button"; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        if (row.dataset.done) return; row.dataset.done = 1; done++;
+        var ok = oi === t[1]; if (ok) good++;
+        b.setAttribute("aria-pressed", "true"); row.className = "task " + (ok ? "okk" : "nok");
+        fb.textContent = (ok ? "Correcto. " : "Corresponde a: " + OPT[t[1]] + ". ") + t[2];
+        $("#taskScore").className = "out " + (done === TASKS.length ? "ok" : ""); $("#taskScore").textContent = "Aciertos: " + good + " de " + done + (done === TASKS.length ? ". ¡Completo!" : ".");
+      }); sg.appendChild(b);
+    });
+    row.appendChild(txt); row.appendChild(sg); row.appendChild(fb); $("#tasks").appendChild(row);
+  });
+  $("#taskScore").textContent = "Elegí una opción para cada tarea.";
+
+  /* ---------- Navegación ---------- */
+  var slides = $$(".slide"), idx = 0, stage = $("#stage");
+  function show(i, fromHash) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, j) { s.hidden = j !== idx; });
+    var t = slides[idx].dataset.title;
+    $("#ctitle").textContent = t; $("#cnum").textContent = (idx + 1) + " / " + slides.length;
+    $("#fill").style.width = ((idx + 1) / slides.length * 100) + "%";
+    var tr = $("#track"); tr.setAttribute("aria-valuemax", slides.length); tr.setAttribute("aria-valuenow", idx + 1);
+    $("#prev").disabled = idx === 0; $("#next").disabled = idx === slides.length - 1;
+    $("#announce").textContent = "Diapositiva " + (idx + 1) + " de " + slides.length + ": " + t;
+    stage.scrollTop = 0;
+    if (!fromHash) { try { history.replaceState(null, "", "#s" + (idx + 1)); } catch (e) { try { location.hash = "s" + (idx + 1); } catch (e2) {} } }
+    store("pr-slide", String(idx));
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g) show(+g.dataset.go - 1); });
+  $("#prev").addEventListener("click", function () { show(idx - 1); });
+  $("#next").addEventListener("click", function () { show(idx + 1); });
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+    else if (e.key === "Home") { e.preventDefault(); show(0); }
+    else if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
+    else if (e.key === "f" || e.key === "F") { fs(); }
+  });
+  function fs() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+  $("#fsBtn").addEventListener("click", fs);
+  $("#themeBtn").addEventListener("click", function () {
+    var r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark ? "light" : "dark"; store("pr-theme", r.dataset.theme);
+  });
+  var th = store("pr-theme"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th;
+
+  var m = /^#s(\d+)$/.exec(location.hash), start = m ? +m[1] - 1 : 0;
+  show(start, true);
+  window.addEventListener("hashchange", function () { var h = /^#s(\d+)$/.exec(location.hash); if (h) show(+h[1] - 1, true); });
+})();
+</script>
+</body>
+</html>

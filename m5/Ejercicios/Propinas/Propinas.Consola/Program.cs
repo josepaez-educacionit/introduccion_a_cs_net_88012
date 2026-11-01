@@ -96,6 +96,7 @@ namespace Propinas.Consola
             }
         }
 
+        // Muestra el detalle de la cuenta, la propina y el total a pagar.
         static void MostrarDetalle(DetallePropina detalle)
         {
             // ",-16" deja la etiqueta alineada a la izquierda en 16 espacios.

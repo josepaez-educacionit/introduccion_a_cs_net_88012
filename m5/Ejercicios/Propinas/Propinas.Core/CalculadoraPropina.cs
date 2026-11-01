@@ -4,6 +4,8 @@ using System.Text;
 
 namespace Propinas.Core
 {
+    // Reglas del cálculo de propinas.
+    // Esta clase no sabe nada de pantallas: por eso la usan la consola, Windows Forms y la web.
     public class CalculadoraPropina
     {
         // Porcentaje de esta calculadora, de 0 a 1 (0,10 equivale a 10 %).

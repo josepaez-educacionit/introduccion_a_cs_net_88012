@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Propinas.Core
 {
+    // Guarda el resultado de un cálculo de propina: es lo que cada pantalla le muestra al usuario.
     public class DetallePropina
     {
         // Importe de la cuenta, antes de sumar la propina.

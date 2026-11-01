@@ -28,12 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new Label();
-            label2 = new Label();
-            valorPropina = new TextBox();
-            valorTotal = new TextBox();
-            label3 = new Label();
-            label4 = new Label();
+            etiquetaMonto = new Label();
+            etiquetaPorcentaje = new Label();
+            valorPropina = new Label();
+            valorTotal = new Label();
+            etiquetaPropina = new Label();
+            etiquetaTotal = new Label();
             BotonCalcular = new Button();
             BotonLimpiar = new Button();
             campoMonto = new NumericUpDown();
@@ -42,109 +42,137 @@
             ((System.ComponentModel.ISupportInitialize)campoPorcentaje).BeginInit();
             SuspendLayout();
             // 
-            // label1
+            // etiquetaMonto
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(93, 80);
-            label1.Name = "label1";
-            label1.Size = new Size(43, 15);
-            label1.TabIndex = 2;
-            label1.Text = "Monto";
+            etiquetaMonto.AutoSize = true;
+            etiquetaMonto.Location = new Point(22, 24);
+            etiquetaMonto.Name = "etiquetaMonto";
+            etiquetaMonto.Size = new Size(111, 15);
+            etiquetaMonto.TabIndex = 2;
+            etiquetaMonto.Text = "Monto de la cuenta:";
             // 
-            // label2
+            // etiquetaPorcentaje
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(93, 109);
-            label2.Name = "label2";
-            label2.Size = new Size(63, 15);
-            label2.TabIndex = 3;
-            label2.Text = "Porcentaje";
+            etiquetaPorcentaje.AutoSize = true;
+            etiquetaPorcentaje.Location = new Point(22, 60);
+            etiquetaPorcentaje.Name = "etiquetaPorcentaje";
+            etiquetaPorcentaje.Size = new Size(169, 15);
+            etiquetaPorcentaje.TabIndex = 3;
+            etiquetaPorcentaje.Text = "Porcentaje de propina (%):";
             // 
             // valorPropina
             // 
-            valorPropina.Location = new Point(175, 155);
+            valorPropina.AutoSize = true;
+            valorPropina.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            valorPropina.ForeColor = Color.DodgerBlue;
+            valorPropina.Location = new Point(265, 96);
             valorPropina.Name = "valorPropina";
-            valorPropina.Size = new Size(100, 23);
+            valorPropina.Size = new Size(48, 15);
             valorPropina.TabIndex = 4;
+            valorPropina.Text = "$ 0,00";
+            valorPropina.TextAlign = ContentAlignment.TopRight;
             // 
             // valorTotal
             // 
-            valorTotal.Location = new Point(174, 193);
+            valorTotal.AutoSize = true;
+            valorTotal.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            valorTotal.ForeColor = Color.Black;
+            valorTotal.Location = new Point(265, 132);
             valorTotal.Name = "valorTotal";
-            valorTotal.Size = new Size(100, 23);
+            valorTotal.Size = new Size(61, 20);
             valorTotal.TabIndex = 5;
+            valorTotal.Text = "$ 0,00";
+            valorTotal.TextAlign = ContentAlignment.TopRight;
             // 
-            // label3
+            // etiquetaPropina
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(110, 159);
-            label3.Name = "label3";
-            label3.Size = new Size(48, 15);
-            label3.TabIndex = 6;
-            label3.Text = "Propina";
+            etiquetaPropina.AutoSize = true;
+            etiquetaPropina.Font = new Font("Segoe UI", 9F);
+            etiquetaPropina.Location = new Point(22, 96);
+            etiquetaPropina.Name = "etiquetaPropina";
+            etiquetaPropina.Size = new Size(113, 15);
+            etiquetaPropina.TabIndex = 6;
+            etiquetaPropina.Text = "Importe de la propina:";
             // 
-            // label4
+            // etiquetaTotal
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(117, 193);
-            label4.Name = "label4";
-            label4.Size = new Size(33, 15);
-            label4.TabIndex = 7;
-            label4.Text = "Total";
+            etiquetaTotal.AutoSize = true;
+            etiquetaTotal.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            etiquetaTotal.Location = new Point(22, 133);
+            etiquetaTotal.Name = "etiquetaTotal";
+            etiquetaTotal.Size = new Size(90, 19);
+            etiquetaTotal.TabIndex = 7;
+            etiquetaTotal.Text = "Total a pagar:";
             // 
             // BotonCalcular
             // 
-            BotonCalcular.Location = new Point(308, 255);
+            BotonCalcular.BackColor = Color.CornflowerBlue;
+            BotonCalcular.FlatStyle = FlatStyle.Flat;
+            BotonCalcular.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            BotonCalcular.ForeColor = Color.White;
+            BotonCalcular.Location = new Point(22, 167);
             BotonCalcular.Name = "BotonCalcular";
-            BotonCalcular.Size = new Size(75, 23);
+            BotonCalcular.Size = new Size(100, 32);
             BotonCalcular.TabIndex = 8;
             BotonCalcular.Text = "Calcular";
-            BotonCalcular.UseVisualStyleBackColor = true;
+            BotonCalcular.UseVisualStyleBackColor = false;
             BotonCalcular.Click += BotonCalcular_Click;
             // 
             // BotonLimpiar
             // 
-            BotonLimpiar.Location = new Point(400, 255);
+            BotonLimpiar.BackColor = Color.LightGray;
+            BotonLimpiar.FlatStyle = FlatStyle.Flat;
+            BotonLimpiar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            BotonLimpiar.Location = new Point(228, 167);
             BotonLimpiar.Name = "BotonLimpiar";
-            BotonLimpiar.Size = new Size(75, 23);
+            BotonLimpiar.Size = new Size(100, 32);
             BotonLimpiar.TabIndex = 9;
             BotonLimpiar.Text = "Limpiar";
-            BotonLimpiar.UseVisualStyleBackColor = true;
+            BotonLimpiar.UseVisualStyleBackColor = false;
             BotonLimpiar.Click += BotonLimpiar_Click;
             // 
             // campoMonto
             // 
-            campoMonto.Location = new Point(189, 77);
-            campoMonto.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            campoMonto.DecimalPlaces = 2;
+            campoMonto.Location = new Point(228, 24);
+            campoMonto.Maximum = new decimal(new int[] { 10000000, 0, 0, 0 });
             campoMonto.Name = "campoMonto";
-            campoMonto.Size = new Size(120, 23);
-            campoMonto.TabIndex = 10;
+            campoMonto.Size = new Size(100, 23);
+            campoMonto.TabIndex = 0;
+            campoMonto.TextAlign = HorizontalAlignment.Right;
+            campoMonto.ThousandsSeparator = true;
             // 
             // campoPorcentaje
             // 
-            campoPorcentaje.Location = new Point(192, 108);
-            campoPorcentaje.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+            campoPorcentaje.Location = new Point(228, 60);
+            campoPorcentaje.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             campoPorcentaje.Name = "campoPorcentaje";
-            campoPorcentaje.Size = new Size(120, 23);
+            campoPorcentaje.Size = new Size(100, 23);
             campoPorcentaje.TabIndex = 11;
+            campoPorcentaje.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
             // FormularioPropina
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(523, 366);
+            BackColor = Color.White;
+            ClientSize = new Size(350, 220);
             Controls.Add(campoPorcentaje);
             Controls.Add(campoMonto);
             Controls.Add(BotonLimpiar);
             Controls.Add(BotonCalcular);
-            Controls.Add(label4);
-            Controls.Add(label3);
+            Controls.Add(etiquetaTotal);
             Controls.Add(valorTotal);
+            Controls.Add(etiquetaPropina);
             Controls.Add(valorPropina);
-            Controls.Add(label2);
-            Controls.Add(label1);
+            Controls.Add(etiquetaPorcentaje);
+            Controls.Add(etiquetaMonto);
+            Font = new Font("Segoe UI", 9F);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
             Name = "FormularioPropina";
-            Text = "FormularioPropina";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Calculadora de propina";
             ((System.ComponentModel.ISupportInitialize)campoMonto).EndInit();
             ((System.ComponentModel.ISupportInitialize)campoPorcentaje).EndInit();
             ResumeLayout(false);
@@ -152,12 +180,12 @@
         }
 
         #endregion
-        private Label label1;
-        private Label label2;
-        private TextBox valorPropina;
-        private TextBox valorTotal;
-        private Label label3;
-        private Label label4;
+        private Label etiquetaMonto;
+        private Label etiquetaPorcentaje;
+        private Label valorPropina;
+        private Label valorTotal;
+        private Label etiquetaPropina;
+        private Label etiquetaTotal;
         private Button BotonCalcular;
         private Button BotonLimpiar;
         private NumericUpDown campoMonto;
